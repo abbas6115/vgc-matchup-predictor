@@ -1,0 +1,40 @@
+# Local files
+__pycache__/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Heavy Data Files
+data/raw/*
+!data/raw/.gitkeep
+
+data/processed/*
+data/processed/.gitkeep
+
+# ignore sample data (for small reproducible tests)
+!data/sample/*
+!data/sample/
+
+*.json
+*.csv
+*.zip
+*.tar.gz
+*.7z
+
+# IDE files
+.vscode/*
+.idea/
+
+# System & OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
