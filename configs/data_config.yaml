@@ -1,0 +1,5 @@
+dataset:
+  hf_repo: "cameronangliss/vgc-battle-logs"
+  m_a: "logs_gen9championsvgc2026regma.json" # Regulation M-A battle data
+  m_b: "logs_gen9championsvgc2026regmb.json" # Regulation M-B battle data
+  raw_path: "data/raw/"
