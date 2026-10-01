@@ -71,7 +71,7 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
         pokemon_info["nature"] = line[:line.find('|')]
         line = line[line.find('|')+1:]
         
-        pokemon_info_list[pokemon[:3]] = pokemon_info_list
+        pokemon_info_list[pokemon[:3]] = pokemon_info
     
     return pokemon_info_list
 
