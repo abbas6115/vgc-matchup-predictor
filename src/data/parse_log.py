@@ -88,8 +88,8 @@ def findSubstring(regex, log) -> str:
 
     pattern = re.compile(regex)
     search = pattern.search(log)
-    result = search.group(1) 
     if search:
-        return result
+        return search.group(1) 
     else:
+        print("Error Searching for target")
         return None
