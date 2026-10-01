@@ -9,7 +9,9 @@ import re
 def parse_log(log:str) -> dict:
     """
     takes the battle log and parses it to get the lead pokemon information 
-    returns a dictionary of pokemon
+    returns a dictionary of dictionaries containing the pokemon information
+    in style of "position" : {name: , item: , ability: , moves: , nature: }
+    
     """
 
     short_log = extractStartingInformation(log)
@@ -31,10 +33,10 @@ def getLeadPokemon(log:str) -> list:
     """
     
     return [
-        findSubstring(r"(p1a:[^|]*)", log),
-        findSubstring(r"(p1b:[^|]*)", log),
-        findSubstring(r"(p2a:[^|]*)", log),
-        findSubstring(r"(p2b:[^|]*)", log),
+        findSubstring(r"p1a:[^|]*\|([^,]+)", log),
+        findSubstring(r"p1b:[^|]*\|([^,]+)", log),
+        findSubstring(r"p2a:[^|]*\|([^,]+)", log),
+        findSubstring(r"p2b:[^|]*\|([^,]+)", log),
         ]
 
 # takes a list of pokemon and returns a list of dictionaries containing the pokemon information
@@ -90,7 +92,4 @@ def findSubstring(regex, log) -> str:
     if search:
         return result
     else:
-        return ""
-
-
-    print(parse_log())
+        return None
