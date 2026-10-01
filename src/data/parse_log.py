@@ -33,10 +33,10 @@ def getLeadPokemon(log:str) -> list:
     """
     
     return [
-        findSubstring(r"p1a:[^|]*\|([^,]+)", log),
-        findSubstring(r"p1b:[^|]*\|([^,]+)", log),
-        findSubstring(r"p2a:[^|]*\|([^,]+)", log),
-        findSubstring(r"p2b:[^|]*\|([^,]+)", log),
+        "p1a: " + findSubstring(r"p1a:[^|]*\|([^,]+)", log),
+        "p1b: " + findSubstring(r"p1b:[^|]*\|([^,]+)", log),
+        "p2a: " + findSubstring(r"p2a:[^|]*\|([^,]+)", log),
+        "p2b: " + findSubstring(r"p2b:[^|]*\|([^,]+)", log),
         ]
 
 # takes a list of pokemon and returns a list of dictionaries containing the pokemon information
