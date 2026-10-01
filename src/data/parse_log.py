@@ -1,20 +1,30 @@
 import re
 
-# 
-def parse_log(log):
+
+def parse_log(log:str):
+    """
+    takes the battle log and parses it to get the lead pokemon information 
+    returns a dictionary of pokemon
+    """
+
     short_log = extractStartingInformation(log)
     lead_pokemon = getLeadPokemon(short_log)
     pokemon_lead_info = getPokemonInfo(lead_pokemon, short_log)
     return pokemon_lead_info
 
-# This takes all the lines from the log of a battle between "|showteam|"(inclusive) and "|turn|1" (exclusive) and returns it
-# 
 def extractStartingInformation(log:str) -> str:
+    """
+    takes the log and strips the lines between "|showteam|" (inclusive) and "|turn|1" exclusive
+    to shorten it
+    """
     return log[log.find('|showteam|'):log.find('|turn|1')]
 
-# take the log and finds the lead pokemon of each player
-# returns a list of each lead pokemon and the player
-def getLeadPokemon(log) -> list:
+
+def getLeadPokemon(log:str) -> list:
+    """
+    takes the log and returns a list of the pokemon each player leads
+    """
+    
     return [
         findSubstring(r"(p1a:[^|]*)", log),
         findSubstring(r"(p1b:[^|]*)", log),
@@ -25,6 +35,13 @@ def getLeadPokemon(log) -> list:
 # takes a list of pokemon and returns a list of dictionaries containing the pokemon information
 # style of {player: , name: , item: , ability: , moves: , nature: }
 def getPokemonInfo(pokemon_list:list, log:str) -> dict:
+
+    """
+    takes a list of pokemon and the log 
+    returns a list of dictionaries containing the pokemon information
+    in style of {player: , name: , item: , ability: , moves: , nature: }
+    """
+
     pokemon_info_list = []
     for pokemon in pokemon_list:
         pokemon_info = {}
@@ -56,23 +73,21 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
     return pokemon_info_list
 
         
-# helper function to help with searching log with regex
+
 def findSubstring(regex, log) -> str: 
+    """
+    helper function to search log with regex
+    takes a regex and log
+    returns a string of characters that match, returns empty if characters dont match
+    """
+
     pattern = re.compile(regex)
     search = pattern.search(log)
-    result = search.group(1) if search else ""
-    return result
+    result = search.group(1) 
+    if search:
+        return result
+    else:
+        return ""
 
 
-
-
-
-with open("data\\raw\\samplelog.txt", 'r') as file:
-    for line in file:
-        shortLog = extractStartingInformation(line)
-        print(shortLog+'\n\n')
-
-        leadPokemon = getLeadPokemon(shortLog)
-        print(f'\n\n {leadPokemon}\n')
-
-        print(getPokemonInfo(leadPokemon, shortLog))
+    print(parse_log())
