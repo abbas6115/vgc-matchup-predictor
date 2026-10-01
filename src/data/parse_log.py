@@ -1,26 +1,71 @@
 import re
 
 # 
-def parse_log():
-    pass
+def parse_log(log):
+    short_log = extractStartingInformation(log)
+    lead_pokemon = getLeadPokemon(short_log)
+    pokemon_lead_info = getPokemonInfo(lead_pokemon, short_log)
+    return pokemon_lead_info
 
 # This takes all the lines from the log of a battle between "|showteam|"(inclusive) and "|turn|1" (exclusive) and returns it
 # 
 def extractStartingInformation(log:str) -> str:
     return log[log.find('|showteam|'):log.find('|turn|1')]
 
+# take the log and finds the lead pokemon of each player
+# returns a list of each lead pokemon and the player
 def getLeadPokemon(log) -> list:
     return [
         findSubstring(r"(p1a:[^|]*)", log),
         findSubstring(r"(p1b:[^|]*)", log),
         findSubstring(r"(p2a:[^|]*)", log),
-        findSubstring(r"(p2b[^|]*)", log),
+        findSubstring(r"(p2b:[^|]*)", log),
         ]
 
+# takes a list of pokemon and returns a list of dictionaries containing the pokemon information
+# style of {player: , name: , item: , ability: , moves: , nature: }
+def getPokemonInfo(pokemon_list:list, log:str) -> dict:
+    pokemon_info_list = []
+    for pokemon in pokemon_list:
+        pokemon_info = {}
+        line = findSubstring(r"({}\|\|[^\]]*)".format(pokemon[5:]), log)
+        
+        pokemon_info["player"] = pokemon[:2]
+
+        pokemon_info["name"] = pokemon[5:]
+
+        # remove pokemon name from line
+        line = line[(len(pokemon_info["name"]+"||")):]
+
+        pokemon_info["item"] = line[:line.find('|')]
+        line = line[line.find('|')+1:]
+
+        
+        pokemon_info["ability"] = line[:line.find('|')]
+        line = line[line.find('|')+1:]
+
+
+        pokemon_info["moves"] = line[:line.find('|')].split(",")
+        line = line[line.find('|')+1:]
+
+        pokemon_info["nature"] = line[:line.find('|')]
+        line = line[line.find('|')+1:]
+        
+        pokemon_info_list.append(pokemon_info)
+    
+    return pokemon_info_list
+
+        
+# helper function to help with searching log with regex
 def findSubstring(regex, log) -> str: 
-    search = re.search(regex, log)   
+    pattern = re.compile(regex)
+    search = pattern.search(log)
     result = search.group(1) if search else ""
     return result
+
+
+
+
 
 with open("data\\raw\\samplelog.txt", 'r') as file:
     for line in file:
@@ -28,5 +73,6 @@ with open("data\\raw\\samplelog.txt", 'r') as file:
         print(shortLog+'\n\n')
 
         leadPokemon = getLeadPokemon(shortLog)
-        print(f'\n\n {leadPokemon}')
+        print(f'\n\n {leadPokemon}\n')
 
+        print(getPokemonInfo(leadPokemon, shortLog))
