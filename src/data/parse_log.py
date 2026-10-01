@@ -1,3 +1,8 @@
+"""
+module to parse the battle log from json
+takes 
+"""
+
 import re
 
 
