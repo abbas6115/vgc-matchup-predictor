@@ -6,7 +6,7 @@ takes
 import re
 
 
-def parse_log(log:str):
+def parse_log(log:str) -> dict:
     """
     takes the battle log and parses it to get the lead pokemon information 
     returns a dictionary of pokemon
@@ -43,16 +43,14 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
 
     """
     takes a list of pokemon and the log 
-    returns a list of dictionaries containing the pokemon information
-    in style of {player: , name: , item: , ability: , moves: , nature: }
+    returns a dictionary of dictionaries containing the pokemon information
+    in style of "position" : {name: , item: , ability: , moves: , nature: }
     """
 
-    pokemon_info_list = []
+    pokemon_info_list = {}
     for pokemon in pokemon_list:
         pokemon_info = {}
         line = findSubstring(r"({}\|\|[^\]]*)".format(pokemon[5:]), log)
-        
-        pokemon_info["player"] = pokemon[:2]
 
         pokemon_info["name"] = pokemon[5:]
 
@@ -73,7 +71,7 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
         pokemon_info["nature"] = line[:line.find('|')]
         line = line[line.find('|')+1:]
         
-        pokemon_info_list.append(pokemon_info)
+        pokemon_info_list[pokemon[:2]] = pokemon_info_list
     
     return pokemon_info_list
 
