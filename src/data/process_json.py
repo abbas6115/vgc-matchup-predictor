@@ -1,5 +1,5 @@
 import json
-from src.data.parse_log import parse_log
+from src.data.parse_log import parse_log, getWinner
 from src.utils.config import load_config
 
 def start_process_data()-> None:
@@ -16,8 +16,9 @@ def start_process_data()-> None:
         ]
 
     target_path = config['dataset']['processed_path']
-
+    print("Processing files")    
     process_data(raw_files,target_path)
+    print("Completed Processing files")
 
 
 def process_data(files:list[str], target:str) -> None:
@@ -55,6 +56,7 @@ def process_data(files:list[str], target:str) -> None:
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
+                    battle_info["winner"] = getWinner(battle_log)
 
                 battle_info_list.append(battle_info)
 

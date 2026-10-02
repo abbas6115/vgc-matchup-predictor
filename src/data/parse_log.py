@@ -1,6 +1,5 @@
 """
-module to parse the battle log from json
-takes 
+module to parse the battle log from data source
 """
 
 import re
@@ -14,10 +13,12 @@ def parse_log(log:str) -> dict:
     
     """
 
+
     short_log = extractStartingInformation(log)
     lead_pokemon = getLeadPokemon(short_log)
-    pokemon_lead_info = getPokemonInfo(lead_pokemon, short_log)
-    return pokemon_lead_info
+    battle_lead_info = getPokemonInfo(lead_pokemon, short_log)
+    
+    return battle_lead_info
 
 def extractStartingInformation(log:str) -> str:
     """
@@ -71,13 +72,20 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
         line = line[line.find('|')+1:]
 
         pokemon_info["nature"] = line[:line.find('|')]
+
         line = line[line.find('|')+1:]
         
         pokemon_info_list[pokemon[:3]] = pokemon_info
     
     return pokemon_info_list
 
-        
+def getWinner(log:str) -> str:
+    """
+    Takes the log and returns the winner of the battle
+    """
+    winner = findSubstring(r"\|win\|((?:(?!\\n).)*)", log)
+    player = findSubstring(fr"\|player\|([^|]+)\|{re.escape(winner)}\|", log)
+    return player
 
 def findSubstring(regex, log) -> str: 
     """
