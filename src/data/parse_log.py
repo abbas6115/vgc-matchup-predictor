@@ -82,8 +82,12 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
 def getWinner(log:str) -> str:
     """
     Takes the log and returns the winner of the battle
+    either p1 or p2
     """
     winner = findSubstring(r"\|win\|((?:(?!\\n).)*)", log)
+    if not winner:
+        return ""
+
     player = findSubstring(fr"\|player\|([^|]+)\|{re.escape(winner)}\|", log)
     return player
 
@@ -99,5 +103,5 @@ def findSubstring(regex, log) -> str:
     if search:
         return search.group(1) 
     else:
-        print("Error Searching for target")
-        return None
+        print(f"Error Searching for target within log with pattern {regex}")
+        return ""
