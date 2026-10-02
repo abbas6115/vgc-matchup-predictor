@@ -38,3 +38,8 @@ data/processed/.gitkeep
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Packaging / build artifacts
+*.egg-info/
+build/
+dist/
