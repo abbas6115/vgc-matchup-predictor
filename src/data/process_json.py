@@ -30,13 +30,11 @@ def process_data(files:list[str], target:str) -> None:
     for file in files:
         data = read_json(file)
 
-        # skip steps if file cant be found
+        # skip to next file if it cant be found
         if not data:
-            print("Could not find file: "+file)
             continue
 
         # create target file path to add  data to
-
         target_file = createTargetFile(file,target)
 
         battle_info_list = []
@@ -59,9 +57,10 @@ def process_data(files:list[str], target:str) -> None:
                 
                 battle_info["winner"] = getWinner(battle_log)
                 battle_info_list.append(battle_info)
-
         
-        write_to_json(battle_info_list,target_file)
+        if not write_to_json(battle_info_list,target_file):
+            print(f"Could not write to target path {target}")
+            
 
 def read_json(file:str) -> dict:
     """
@@ -70,13 +69,16 @@ def read_json(file:str) -> dict:
     returns the json object as a dict
     """
     try:
+        print("\nOpening: \""+file+"\" to read")
         with open(file, 'r') as f:
+            print("Reading: \""+file+"\"")
             data = json.load(f)
 
+        print("Successfully read \""+file+"\"")
         return data
 
     except FileNotFoundError:
-        print("Error: Cannot find file")
+        print("Error: Could not find file: \""+file+"\"")
 
     except IOError as e:
         print(f"I/O error: {e}")
@@ -89,14 +91,24 @@ def createTargetFile(file, path):
     """
     return path+file.split('/')[-1] 
 
-def write_to_json(data:dict,target: str) -> None:
-    
+def write_to_json(data:dict,target: str) -> bool: 
+    """
+    Function to the proceesed file to a json
+    return a bool if it fails
+    """
+
     try:
+        print("\nOpening: \""+target+"\" to write")
         with open(target, 'w') as file:
+            print("Writing: \""+target+"\"")
             json.dump(data,file,indent=2)
+
+            print("Successfully wrote to: \""+target+"\"")
+        return True
     
     except FileNotFoundError:
-        print("Error: Cannot find file")
+        print("Error: Cannot find file path to write to")
+
 
     except IOError as e:
         print(f"I/O error: {e}")
