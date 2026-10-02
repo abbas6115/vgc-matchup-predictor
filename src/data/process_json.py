@@ -56,8 +56,8 @@ def process_data(files:list[str], target:str) -> None:
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
-                    battle_info["winner"] = getWinner(battle_log)
-
+                
+                battle_info["winner"] = getWinner(battle_log)
                 battle_info_list.append(battle_info)
 
         
