@@ -1,6 +1,6 @@
 import json
-from src.data.parse_log import parse_log, getWinner
-from src.utils.config import load_config
+from src.vgc_matchup_predictor.data.parse_log import parse_log, getWinner
+from src.vgc_matchup_predictor.utils.config import load_config
 
 def start_process_data()-> None:
     """
