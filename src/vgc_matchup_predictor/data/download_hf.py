@@ -1,5 +1,5 @@
 from huggingface_hub import hf_hub_download
-from src.utils.config import load_config
+from src.vgc_matchup_predictor.utils.config import load_config
 
 # Wrapper method that imports the JSON files for regulations M-A and M-B battles (Bo1) using
 # Hugging Face's hf_hub_download() method, then returns the absolute file paths for both tables as a list
