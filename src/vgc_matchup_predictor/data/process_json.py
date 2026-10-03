@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from vgc_matchup_predictor.data.parse_log import parse_log, getWinner
+from vgc_matchup_predictor.data.parse_log import parse_log, get_winner
 from vgc_matchup_predictor.utils.config import load_config
 
 def start_process_data()-> None:
@@ -39,7 +39,7 @@ def process_data(files:list[str], target:str) -> None:
             continue
 
         # create target file path to add  data to
-        target_file = createTargetFile(file,target)
+        target_file = create_target_file(file,target)
 
         battle_info_list = []
 
@@ -59,7 +59,7 @@ def process_data(files:list[str], target:str) -> None:
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
                 
-                battle_info["winner"] = getWinner(battle_log)
+                battle_info["winner"] = get_winner(battle_log)
                 battle_info_list.append(battle_info)
         
         if not write_to_json(battle_info_list,target_file):
@@ -89,7 +89,7 @@ def read_json(file:Path) -> dict:
 
     return None
 
-def createTargetFile(file, path):
+def create_target_file(file, path):
     """
     takes the file and the target path and create a new file in path to write to
     """

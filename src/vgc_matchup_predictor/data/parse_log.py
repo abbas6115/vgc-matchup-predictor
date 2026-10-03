@@ -14,13 +14,13 @@ def parse_log(log:str) -> dict:
     """
 
 
-    short_log = extractStartingInformation(log)
-    lead_pokemon = getLeadPokemon(short_log)
-    battle_lead_info = getPokemonInfo(lead_pokemon, short_log)
+    short_log = extract_starting_information(log)
+    lead_pokemon = get_lead_pokemon(short_log)
+    battle_lead_info = get_pokemon_info(lead_pokemon, short_log)
     
     return battle_lead_info
 
-def extractStartingInformation(log:str) -> str:
+def extract_starting_information(log:str) -> str:
     """
     takes the log and strips the lines between "|showteam|" (inclusive) and "|turn|1" exclusive
     to shorten it
@@ -28,21 +28,21 @@ def extractStartingInformation(log:str) -> str:
     return log[log.find('|showteam|'):log.find('|turn|1')]
 
 
-def getLeadPokemon(log:str) -> list:
+def get_lead_pokemon(log:str) -> list:
     """
     takes the log and returns a list of the pokemon each player leads
     """
     
     return [
-        "p1a: " + findSubstring(r"p1a:[^|]*\|([^,]+)", log),
-        "p1b: " + findSubstring(r"p1b:[^|]*\|([^,]+)", log),
-        "p2a: " + findSubstring(r"p2a:[^|]*\|([^,]+)", log),
-        "p2b: " + findSubstring(r"p2b:[^|]*\|([^,]+)", log),
+        "p1a: " + find_substring(r"p1a:[^|]*\|([^,]+)", log),
+        "p1b: " + find_substring(r"p1b:[^|]*\|([^,]+)", log),
+        "p2a: " + find_substring(r"p2a:[^|]*\|([^,]+)", log),
+        "p2b: " + find_substring(r"p2b:[^|]*\|([^,]+)", log),
         ]
 
 # takes a list of pokemon and returns a list of dictionaries containing the pokemon information
 # style of {player: , name: , item: , ability: , moves: , nature: }
-def getPokemonInfo(pokemon_list:list, log:str) -> dict:
+def get_pokemon_info(pokemon_list:list, log:str) -> dict:
 
     """
     takes a list of pokemon and the log 
@@ -53,7 +53,7 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
     pokemon_info_list = {}
     for pokemon in pokemon_list:
         pokemon_info = {}
-        line = findSubstring(r"({}\|\|[^\]]*)".format(pokemon[5:]), log)
+        line = find_substring(r"({}\|\|[^\]]*)".format(pokemon[5:]), log)
 
         pokemon_info["name"] = pokemon[5:]
 
@@ -79,19 +79,19 @@ def getPokemonInfo(pokemon_list:list, log:str) -> dict:
     
     return pokemon_info_list
 
-def getWinner(log:str) -> str:
+def get_winner(log:str) -> str:
     """
     Takes the log and returns the winner of the battle
     either p1 or p2
     """
-    winner = findSubstring(r"\|win\|((?:(?!\\n).)*)", log)
+    winner = find_substring(r"\|win\|((?:(?!\\n).)*)", log)
     if not winner:
         return ""
 
-    player = findSubstring(fr"\|player\|([^|]+)\|{re.escape(winner)}\|", log)
+    player = find_substring(fr"\|player\|([^|]+)\|{re.escape(winner)}\|", log)
     return player
 
-def findSubstring(regex, log) -> str: 
+def find_substring(regex, log) -> str: 
     """
     helper function to search log with regex
     takes a regex and log
