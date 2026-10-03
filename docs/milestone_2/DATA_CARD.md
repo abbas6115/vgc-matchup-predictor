@@ -56,13 +56,21 @@ Our project specifically focuses on the predictive value of:
 
 ---
 
-## 6. Dataset Size
+## 6. Dataset Pre-process
+
+For the pre-process of our data we used specific regex functions due to how the dataset was structed through Pokemon Showdown. We removed all un-needed information about the whole battle and only grabbed the Pokemon being brought in as well as the two starting leads.
+
+## 7. Dataset Filtering & Cleaning
+
+For filtering and cleaning while looking for empty/junk/error entries, no entries came up therefore not much had to be done in reegards to cleaning and filtering.
+
+## 8. Dataset Size
 
 In total we scraped about **88,905 total battles** from the Pokémon Showdown replay database. We stored them as **JSON tables** in two separate files one for M-A and another for M-B.
 
 ---
 
-## 7. Features / Inputs
+## 9. Features / Inputs
 
 The main input information planned for the model is:
 
@@ -82,7 +90,7 @@ We also might use things such as, nature, or the held item of the Pokémon to de
 
 ---
 
-## 8. Target Variable
+## 10. Target Variable
 
 The target is to **produce a percentage value of what team will win the battle**.
 
@@ -92,7 +100,7 @@ This is therefore a:
 
 ---
 
-## 9. Regulation / Scope
+## 11. Regulation / Scope
 
 The dataset contains battles from the following Pokémon Champions regulations:
 
@@ -105,7 +113,7 @@ Our project will therefore only consist of matchups under those regulations. The
 
 ---
 
-## 10. Missing Data
+## 12. Missing Data
 
 This will be investigated during the initial **Exploratory Data Analysis (EDA)**.
 
@@ -124,7 +132,7 @@ information needed:
 
 ---
 
-## 11. Class Balance / Outcome Distribution
+## 13. Class Balance / Outcome Distribution
 
 This should be calculated during the initial EDA.
 
@@ -142,7 +150,7 @@ Needed information:
 
 ---
 
-## 12. Sample Inputs and Outputs
+## 14. Sample Inputs and Outputs
 
 ### Example Input
 
