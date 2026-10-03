@@ -92,6 +92,7 @@ def get_winner(log:str) -> str:
     return player
 
 def find_substring(regex, log) -> str: 
+
     """
     helper function to search log with regex
     takes a regex and log
@@ -100,8 +101,43 @@ def find_substring(regex, log) -> str:
 
     pattern = re.compile(regex)
     search = pattern.search(log)
-    if search:
+    if search.group(1):
         return search.group(1) 
     else:
         print(f"Error Searching for target within log with pattern {regex}")
+        
         return ""
+
+def get_back_pokemon(log:str, leadList:str) -> list:
+    team_1 =[]
+    team_2 =[]
+
+    team1log = log[log.find('|showteam|p1'):log.find('\\n|showteam|p2')]
+    
+    team_1.append(team1log[len('|showteam|p1|'):team1log.find('||')])
+
+    for num in range(5):
+        team1log=team1log[team1log.find(']')+1:]
+        team_1.append(team1log[:team1log.find('||')])
+
+    # for team 2
+    team2log = log[log.find('|showteam|p2'):log.find('\\n|\\n|')]
+
+    team_2.append(team2log[len('|showteam|p2|'):team2log.find('||')])
+    
+    for num in range(5):
+        team2log=team2log[team2log.find(']')+1:]
+        team_2.append(team2log[:team2log.find('||')])
+
+    # remove lead pokemon
+    team_1.remove(leadList[0])
+    team_1.remove(leadList[1])
+    team_2.remove(leadList[2])
+    team_2.remove(leadList[3])
+
+    return [team_1,team_2]
+
+
+with open('data/raw/samplelog.txt','r') as file:
+    for line in file:
+        print(parse_log(line))

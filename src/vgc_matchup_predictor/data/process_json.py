@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from vgc_matchup_predictor.data.parse_log import parse_log, get_winner
+from vgc_matchup_predictor.data.parse_log import parse_log, get_winner,get_back_pokemon
 from vgc_matchup_predictor.utils.config import load_config
 
 def start_process_data()-> None:
@@ -51,14 +51,24 @@ def process_data(files:list[str], target:str) -> None:
                 
                 battle_log = data[key][1]
                 parsed_battle_log = parse_log(battle_log)
-            
+                
+                lead_pokemon= []
+
+                # add each lead pokemon information
                 for position in parsed_battle_log:
+                    lead_pokemon.append(parsed_battle_log[position]["name"])
                     battle_info[position] = parsed_battle_log[position]["name"]
                     battle_info[position+" item"] = parsed_battle_log[position]["item"]
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
-                
+
+                # add back pokemon
+                back_pokemon = get_back_pokemon(battle_log,lead_pokemon)
+                battle_info["p1_back"] = back_pokemon[0]
+                battle_info["p2_back"] = back_pokemon[1]
+
+                # add winner of the battle
                 battle_info["winner"] = get_winner(battle_log)
                 battle_info_list.append(battle_info)
         
