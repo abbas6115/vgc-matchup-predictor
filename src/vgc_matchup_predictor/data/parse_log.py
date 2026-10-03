@@ -136,8 +136,3 @@ def get_back_pokemon(log:str, leadList:str) -> list:
     team_2.remove(leadList[3])
 
     return [team_1,team_2]
-
-
-with open('data/raw/samplelog.txt','r') as file:
-    for line in file:
-        print(parse_log(line))
