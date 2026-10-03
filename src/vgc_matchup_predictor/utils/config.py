@@ -2,8 +2,10 @@ from pathlib import Path
 import yaml
 
 # Safely finds and loads the data_config.yaml file in configs/
-def load_config(config_path: str = 'configs/data_config.yaml') -> dict:
-    path = Path(config_path)
+def load_config() -> dict:
+    project_root = Path(__file__).resolve().parents[3]
+    path = project_root / "configs" / "data_config.yaml"
+    
     if not path.exists():
         raise FileNotFoundError(f'Configuration file not found at {path.resolve()}')
 
