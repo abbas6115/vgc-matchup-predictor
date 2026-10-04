@@ -81,42 +81,41 @@ Our project will only consist of matchups under these regulations. The project d
 
 
 ## 12. Missing Data
-This will be investigated during the initial **Exploratory Data Analysis (EDA)**.
-
-information needed:
-
-- Which fields contain missing values
-- The number/percentage of missing values
-- Whether missing values are meaningful or represent incomplete battle records
-- How missing values will be handled during preprocessing
+The Python `missingno` package was utilized to find any missing data throughout the files and overall none was found; however, there is an issue of ~75% of Pokémon nature values in the Regulation M-A file being empty; due to natures not being open information to players as of that point in the regulation. This issue will be dealt with via a feature model that uses context from the rest of the dataset (such as Pokémon species and what items they are holding) to estimate what nature a specified Pokémon may be.
 
 
 ## 13. Class Balance / Outcome Distribution
-This should be calculated during the initial EDA.
-
-Needed information:
-
-- Number of wins for each class
-- Percentage of battles in each class
-- Whether the target classes are reasonably balanced
-- Whether class imbalance needs to be considered when training or evaluating models
+Our data holds a total of 7229 unique battles. ~95.5% (6905) of these battles are in Regulation M-A, and the remaining ~4.5% (324) are in Regulation M-B. Almost all of our battle data is in Regulation M-A. The outcome distribution is quite evenly balanced, where the total wins for player 1 across both Regulations is 3658, and for player 2 3571; this is almost a 50-50 split. Imbalance is not an issue for training or evaluating, however training and testing will mainly be done with Reg. M-A battles, and validation with M-B.
 
 
 ## 14. Sample Inputs and Outputs
 
 ### Example Input
-A model input will represent information available before a battle begins, such as:
+As our models will analyze separate battles at a time, a sample input would consist of one entry from the processed JSON file. This file contains the following data that can be passed to features:
 
-- Team A's composition
-- Team B's composition
-- Team A's two starting leads
-- Team B's two starting leads
+- Each player's:
+    - leading Pokémon
+    - leading Pokémons' moves
+    - leading Pokémons' ability
+    - leading Pokémons' held item
+    - leading Pokémons' nature
+    - back Pokémon (the remaining Pokémon in their team)
+ - winner
+
+The winner will not be passed to model features and remains in the data for validation.
 
 ### Example Output
-The model will output a predicted battle outcome, such as:
+Features will process various aspects about the input data and extract information separately. For example, a feature that is concerned with learning the speed control of each player's leads in a specific battle will output a new JSON file containing integer values of related cases, like... 
+
+```
+...
+'p1_speed_control_score':'1',   # score integer value
+'p2_speed_control_score':'0',
+'p1_has_speed_advantage':'1'    # binarized Boolean value
+...
+```
+
+This output data would then be incorporated along with various other output data together to help weigh values of the final model outputs:
 
 - Percentage value for **Player A winning**
 - Percentage value for **Player B winning**
-    
-
-**NEEDED INFORMATION:** Output and Input from EDA
