@@ -129,7 +129,7 @@ def run_benchmark(
         val_reg_b = json.load(f)
 
     # Train model on 50% Reg A
-    model = NaiveVGCBenchmark()
+    model = VGCNaiveBenchmark()
     model.fit(train_reg_a)
 
     # Evaluate on 50% Reg A and full Reg B
@@ -143,7 +143,7 @@ def run_benchmark(
 
 
 if __name__ == '__main__':
-    # Example execution on regulation dataset
+    # execution on processed datasets
     try:
         results = run_benchmark()
         print("Naive Benchmark Evaluation Results:")
