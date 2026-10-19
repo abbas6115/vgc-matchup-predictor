@@ -6,7 +6,7 @@ from vgc_matchup_predictor.utils.config import load_config
 
 config = load_config('data_config.yaml')
 
-class NaiveVGCBenchmark:
+class VGCNaiveBenchmark:
     # Naive baseline models for VGC battle outcome prediction
     # processes JSON battle logs matching Regulation M-A / M-B formats
 
