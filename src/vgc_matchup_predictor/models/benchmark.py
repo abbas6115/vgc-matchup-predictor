@@ -141,7 +141,6 @@ def run_benchmark(
         'reg_b_cross_regulation_validation': reg_b_val_metrics
     }
 
-
 if __name__ == '__main__':
     # execution on processed datasets
     try:
