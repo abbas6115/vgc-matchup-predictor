@@ -7,7 +7,7 @@ def start_process_data()-> None:
     """
     Function just to declare file path and target paths and call process data
     """
-    config = load_config()
+    config = load_config('data_config.yaml')
     project_root = Path(__file__).resolve().parents[3]
     RAW_FILE_PATH = project_root / config['dataset']['raw_path']
 

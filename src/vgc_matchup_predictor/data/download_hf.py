@@ -5,7 +5,7 @@ from vgc_matchup_predictor.utils.config import load_config
 # Wrapper method that imports the JSON files for regulations M-A and M-B battles (Bo1) using
 # Hugging Face's hf_hub_download() method, then returns the absolute file paths for both tables as a list
 def download_hf_dataset():
-    config = load_config()
+    config = load_config('data_config.yaml')
     REPO_ID = config['dataset']['hf_repo']
     FILENAME_MA = config['dataset']['m_a']
     FILENAME_MB = config['dataset']['m_b']
