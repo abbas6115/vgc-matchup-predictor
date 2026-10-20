@@ -111,7 +111,7 @@ def run_benchmark(
     train_ratio: float = 0.8,
     seed: int = 42,
 ) -> Dict[str, Dict[str, float]]:
-    # Trains on 50% Reg M-A, tests on 50% Reg M-A, validates on Reg M-B
+    # Trains on 80% Reg M-A, tests on 20% Reg M-A, validates on Reg M-B
     random.seed(seed)
 
     # Load Reg M-A dataset
@@ -128,11 +128,11 @@ def run_benchmark(
     with open(reg_b_path, 'r', encoding='utf-8') as f:
         val_reg_b = json.load(f)
 
-    # Train model on 50% Reg A
+    # Train model on 80% Reg A
     model = VGCNaiveBenchmark()
     model.fit(train_reg_a)
 
-    # Evaluate on 50% Reg A and full Reg B
+    # Evaluate on 20% Reg A and full Reg B
     reg_a_test_metrics = model.evaluate(test_reg_a)
     reg_b_val_metrics = model.evaluate(val_reg_b)
 

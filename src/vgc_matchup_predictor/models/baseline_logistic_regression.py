@@ -87,7 +87,7 @@ def run_test(
     # standalone load, split, fit, and evaluation for Logistic Regression
     random.seed(seed)
 
-    # Load reg M-A and split 50/50
+    # Load reg M-A and split 80/20
     with open(reg_a_path, 'r', encoding='utf-8') as f:
         reg_a_battles = json.load(f)
 
