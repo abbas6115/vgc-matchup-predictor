@@ -10,3 +10,5 @@
 ## Abbas Syed
 - .gitignore was partially written with ChatGPT assistance in identifying some folders
 - ChatGPT was utilized for helping define project source code structure / `__init__.py` files as well as `pyproject.toml` generation for packaging
+- ChatGPT was utilized to assist with drafting and determining some key points/values to discuss in discrepancy analysis
+- Some AI use (i.e. Google AI Assistant via web search) for assisting with proper Scikit-learn function implementation

@@ -1,4 +1,4 @@
-# Milestone 2
+# Milestone 3
 
 ## Ethan Jallim
 - Created all testing files and folder
@@ -17,3 +17,5 @@
 - Wrote `configs.py` module for loading config data from `configs/data_config.yaml` to use in Python scripts
 - Wrote `data_config.yaml` as a way for globally storing some configurations regarding JSON data
 - Wrote exploratory data analysis notebook in `notebooks/01_milestone2_exploratory_data_analysis.ipynb`
+- Wrote naive benchmark and baseline logistic regression models
+- Wrote discrepancy analysis for baseline table values
