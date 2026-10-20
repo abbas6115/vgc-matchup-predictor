@@ -108,7 +108,7 @@ class VGCNaiveBenchmark:
 def run_benchmark(
     reg_a_path: str = './data/processed/' + config['dataset']['m_a'],
     reg_b_path: str = './data/processed/' + config['dataset']['m_b'],
-    train_ratio: float = 0.5,
+    train_ratio: float = 0.8,
     seed: int = 42,
 ) -> Dict[str, Dict[str, float]]:
     # Trains on 50% Reg M-A, tests on 50% Reg M-A, validates on Reg M-B

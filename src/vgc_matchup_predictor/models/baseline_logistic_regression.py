@@ -81,7 +81,7 @@ class VGCLogisticRegressionBaseline:
 def run_test(
     reg_a_path: str = './data/processed/' + config['dataset']['m_a'],
     reg_b_path: str = './data/processed/' + config['dataset']['m_b'],
-    train_ratio: float = 0.5,
+    train_ratio: float = 0.8,
     seed: int = 42,
 ):
     # standalone load, split, fit, and evaluation for Logistic Regression
