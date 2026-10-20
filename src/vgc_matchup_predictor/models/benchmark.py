@@ -81,35 +81,69 @@ class VGCNaiveBenchmark:
             return self.majority_winner
         return 'p1' if p1_score > p2_score else 'p2'
 
+    @staticmethod
+    def compute_metrics(actuals: List[str], predictions: List[str], pos_label: str = 'p1') -> Dict[str, float]:
+        # Calculates accuracy, precision, recall, and F1 score for binary classification
+        if not actuals:
+            return {'accuracy': 0.0, 'precision': 0.0, 'recall': 0.0, 'f1_score': 0.0}
+
+        tp = sum(1 for a, p in zip(actuals, predictions) if a == pos_label and p == pos_label) # true positives
+        fp = sum(1 for a, p in zip(actuals, predictions) if a != pos_label and p == pos_label) # false positives
+        fn = sum(1 for a, p in zip(actuals, predictions) if a == pos_label and p != pos_label) # false negatives
+        tn = sum(1 for a, p in zip(actuals, predictions) if a != pos_label and p != pos_label) # true negatives
+
+        # precision = TP / (TP + FP)
+        # recall = TP / (TP + FN)
+        # F1 score = 2 * ((precision * recall) / (precision + recall))
+
+        total = len(actuals)
+        accuracy = (tp + tn) / total
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        return {
+            'accuracy': accuracy,
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1_score
+        }
+
     def evaluate(self, test_data: List[Dict]) -> Dict[str, float]:
         # Evaluates majority class and winrate-sum heuristics on test split
-        correct_majority = 0
-        correct_winrate = 0
         total = len(test_data)
 
         if total == 0:
-            return {'majority_acc': 0.0, 'winrate_sum_acc': 0.0, 'test_samples': 0}
+            return {
+                'test_samples': 0,
+                'majority_accuracy': 0.0, 'majority_precision': 0.0, 'majority_recall': 0.0, 'majority_f1': 0.0,
+                'winrate_sum_accuracy': 0.0, 'winrate_sum_precision': 0.0, 'winrate_sum_recall': 0.0, 'winrate_sum_f1': 0.0
+            }
 
-        for battle in test_data:
-            actual = battle.get('winner')
+        actuals = [battle.get('winner') for battle in test_data]
+        majority_preds = [self.predict_majority(battle) for battle in test_data]
+        winrate_preds = [self.predict_winrate_sum(battle) for battle in test_data]
 
-            if self.predict_majority(battle) == actual:
-                correct_majority += 1
-
-            if self.predict_winrate_sum(battle) == actual:
-                correct_winrate += 1
+        maj_metrics = self.compute_metrics(actuals, majority_preds)
+        win_metrics = self.compute_metrics(actuals, winrate_preds)
 
         return {
-            'majority_accuracy': correct_majority / total,
-            'winrate_sum_accuracy': correct_winrate / total,
-            'test_samples': total
+            'test_samples': total,
+            'majority_accuracy': maj_metrics['accuracy'],
+            'majority_precision': maj_metrics['precision'],
+            'majority_recall': maj_metrics['recall'],
+            'majority_f1': maj_metrics['f1_score'],
+            'winrate_sum_accuracy': win_metrics['accuracy'],
+            'winrate_sum_precision': win_metrics['precision'],
+            'winrate_sum_recall': win_metrics['recall'],
+            'winrate_sum_f1': win_metrics['f1_score']
         }
 
 def run_benchmark(
     reg_a_path: str = './data/processed/' + config['dataset']['m_a'],
     reg_b_path: str = './data/processed/' + config['dataset']['m_b'],
     train_ratio: float = 0.8,
-    seed: int = 42,
+    seed: int = 42
 ) -> Dict[str, Dict[str, float]]:
     # Trains on 80% Reg M-A, tests on 20% Reg M-A, validates on Reg M-B
     random.seed(seed)
