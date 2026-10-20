@@ -1,55 +1,39 @@
-import pytest
 from pathlib import Path
-from src.data.download_hf import download_hf_dataset
-from src.utils.config import load_config
 
-def test_download_hf_dataset_is_not_empty():
-    dataset = download_hf_dataset()
+from vgc_matchup_predictor.data.download_hf import download_hf_dataset
 
-    
-    # Check that the dataset is not None
-    assert dataset is not None, "The downloaded dataset should not be None."
 
-def test_download_hf_dataset_config(monkeypatch):
-
-    # Mock Data
+# Mock config and network access so this test is repeatable and offline.
+def test_download_hf_dataset_uses_config_and_returns_paths(monkeypatch, tmp_path):
     config_data = {
-        "repo_id": "expected/repo-name",
-        "repo_file_a": "dataset-A.json", 
-        "repo_file_b": "dataset-B.json", 
-        "raw_dir": "data/raw/" 
+        "dataset": {
+            "hf_repo": "expected/repo-name",
+            "m_a": "dataset-A.json",
+            "m_b": "dataset-B.json",
+            "raw_path": str(tmp_path / "raw"),
+        }
     }
+    monkeypatch.setattr(
+        "vgc_matchup_predictor.data.download_hf.load_config",
+        lambda config_file: config_data,
+    )
 
-    monkeypatch.setattr("src.utils.config.load_config", lambda: config_data)
-
-    # Track the calls
-
-    hf_download_calls = []
+    download_calls = []
 
     def stub_hf_hub_download(**kwargs):
-        hf_download_calls.append(kwargs)
-        return Path(kwargs.get("local_dir")) / kwargs.get("filename")
+        download_calls.append(kwargs)
+        return Path(kwargs["local_dir"]) / kwargs["filename"]
 
-    monkeypatch.setattr("src.data.download_hf.hf_hub_download", stub_hf_hub_download)
-
+    monkeypatch.setattr(
+        "vgc_matchup_predictor.data.download_hf.hf_hub_download",
+        stub_hf_hub_download,
+    )
 
     dataset = download_hf_dataset()
 
-    # Verify hf_hub_download was called twice
-    assert len(hf_download_calls) == 2
-
-    expected_files = ["logs_gen9championsvgc2026regma.json", "logs_gen9championsvgc2026regmb.json"]
-
-    # Verify config
-    for i, call in enumerate(hf_download_calls):
-        assert call.get("repo_id") == "cameronangliss/vgc-battle-logs"
-        assert call.get("filename") == expected_files[i]
-        assert call.get("local_dir") == "data/raw/"
-
-    # Verify the final returned path
-    for path_str in dataset:
-        path = Path(path_str)
-        assert path.suffix == ".json"
-        assert path.parent == Path("data/raw/")
-
-    
+    expected_files = ["dataset-A.json", "dataset-B.json"]
+    assert [call["filename"] for call in download_calls] == expected_files
+    assert all(call["repo_id"] == "expected/repo-name" for call in download_calls)
+    assert all(call["repo_type"] == "dataset" for call in download_calls)
+    assert all(call["local_dir"] == str(tmp_path / "raw") for call in download_calls)
+    assert dataset == [tmp_path / "raw" / filename for filename in expected_files]

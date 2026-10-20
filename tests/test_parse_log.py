@@ -1,12 +1,9 @@
-import pytest
-from unittest.mock import patch
-
-from src.data.parse_log import (
+from vgc_matchup_predictor.data.parse_log import (
     parse_log,
-    extractStartingInformation,
-    getLeadPokemon,
-    getPokemonInfo,
-    findSubstring,
+    extract_starting_information,
+    get_lead_pokemon,
+    get_pokemon_info,
+    find_substring,
 )
 
 
@@ -32,15 +29,16 @@ def test_find_substring_match():
     log = "|switch|p1a: Pikachu|Pikachu, M|100/100"
     regex = r"p1a:[^|]*\|([^,]+)"
 
-    result = findSubstring(regex, log)
+    result = find_substring(regex, log)
     assert result == "Pikachu"
 
 def test_find_substring_no_match(capsys):
     log = "|switch|p1a: Pikachu|Pikachu, M|100/100"
     regex = r"nonexistent_pattern_([^,]+)"
 
-    result = findSubstring(regex, log)
-    assert result is None
+    result = find_substring(regex, log)
+    # The parser reports an unsuccessful search as an empty string.
+    assert result == ""
 
     captured = capsys.readouterr()
     assert "Error Searching for target" in captured.out
@@ -49,7 +47,7 @@ def test_find_substring_no_match(capsys):
 # Tests for extractStartingInformation
 
 def test_extract_starting_information():
-    result = extractStartingInformation(SAMPLE_LOG)
+    result = extract_starting_information(SAMPLE_LOG)
 
     assert result.startswith("|showteam|")
     assert "|turn|1" not in result
@@ -66,7 +64,7 @@ def test_get_lead_pokemon():
         "|switch|p2b: Grimmsnarl|Grimmsnarl, M|100/100\n"
     )
 
-    result = getLeadPokemon(short_log)
+    result = get_lead_pokemon(short_log)
 
     expected = [
         "p1a: Pikachu",
@@ -91,7 +89,7 @@ def test_get_pokemon_info():
         "Inteleon||Choice Specs|Torrent|Snipe Shot,Ice Beam|Timid|\n"
     )
 
-    result = getPokemonInfo(pokemon_list, log_data)
+    result = get_pokemon_info(pokemon_list, log_data)
 
     expected = {
         "p1a": {
@@ -130,7 +128,5 @@ def test_parse_log_integration():
     assert result["p1a"]["ability"] == "Static"
     assert result["p1a"]["moves"] == ["Thunderbolt", "Quick Attack"]
     assert result["p1a"]["nature"] == "Timid"
-
-
 
 

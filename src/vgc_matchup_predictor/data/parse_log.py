@@ -101,12 +101,12 @@ def find_substring(regex, log) -> str:
 
     pattern = re.compile(regex)
     search = pattern.search(log)
-    if search.group(1):
-        return search.group(1) 
-    else:
+    # A missing regex match has no group to read; preserve the empty-string result.
+    if search is None or not search.group(1):
         print(f"Error Searching for target within log with pattern {regex}")
-        
         return ""
+
+    return search.group(1)
 
 def get_back_pokemon(log:str, leadList:str) -> list:
     team_1 =[]

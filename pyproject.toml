@@ -6,6 +6,21 @@ build-backend = "setuptools.build_meta"
 name = "vgc-matchup-predictor"
 version = "0.1.0"
 requires-python = ">=3.10"
+# Declare the libraries imported by the application so fresh installs can run it.
+dependencies = [
+    "huggingface_hub",
+    "numpy",
+    "PyYAML",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+# Keep pytest installable with the project without making it a runtime dependency.
+test = ["pytest"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+# Make the src-layout package importable when pytest runs from the repository root.
+pythonpath = ["src"]
