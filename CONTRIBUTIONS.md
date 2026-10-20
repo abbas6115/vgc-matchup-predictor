@@ -8,6 +8,7 @@
 ## Shan Jeofry
 - Wrote the modules `parse_json.py` and `process_json.py` to preprocess the dataset and return the needed features from the dataset
 - Wrote the approval memo
+- Wrote Reproducible Baseline Technical Memo
 
 ## Abbas Syed
 - Generated initial project file structure / packaging structure for importing modules into notebooks
