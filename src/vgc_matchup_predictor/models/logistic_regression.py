@@ -4,7 +4,7 @@ import random
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MultiLabelBinarizer
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 from vgc_matchup_predictor.utils.config import load_config
 
 config = load_config('data_config.yaml')
@@ -67,7 +67,7 @@ class VGCLogisticRegression:
         return 'p1' if pred == 1 else 'p2'
 
     def evaluate(self, test_data: List[Dict]) -> Dict[str, float]:
-        # Evaluates accuracy, precision, recall, f1-score on out-of-sample test split
+        # Evaluates accuracy, precision, recall, f1-score, log loss on out-of-sample test split
         if not self.is_fitted:
             raise RuntimeError('Model must be fitted before evaluation')
 
@@ -77,18 +77,21 @@ class VGCLogisticRegression:
                 'logistic_regression_accuracy': 0.0,
                 'logistic_regression_precision': 0.0,
                 'logistic_regression_recall': 0.0,
-                'logistic_regression_f1': 0.0
+                'logistic_regression_f1': 0.0,
+                'logistic_regression_log_loss': 0.0
             }
 
         X_test, y_test = self.prepare_features(test_data, is_train=False)
-        y_pred = self.model.predict(X_test)
+        y_pred = self.model.predict(X_test)         # discrete probabilities ('p1' or 'p2')
+        y_proba = self.model.predict_proba(X_test)  # continuous probabilities (P(p1), P(p2)); required for log loss function
 
         return {
             'test_samples': len(test_data),
             'logistic_regression_accuracy': float(accuracy_score(y_test, y_pred)),
             'logistic_regression_precision': float(precision_score(y_test, y_pred, zero_division=0)),
             'logistic_regression_recall': float(recall_score(y_test, y_pred, zero_division=0)),
-            'logistic_regression_f1': float(f1_score(y_test, y_pred, zero_division=0))
+            'logistic_regression_f1': float(f1_score(y_test, y_pred, zero_division=0)),
+            'logistic_regression_log_loss': float(log_loss(y_test, y_proba))
         }
 
 def run_test(
