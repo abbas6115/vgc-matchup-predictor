@@ -9,7 +9,7 @@ from vgc_matchup_predictor.utils.config import load_config
 
 config = load_config('data_config.yaml')
 
-class VGCLogisticRegressionBaseline:
+class VGCLogisticRegression:
     # Logistic Regression baseline for battle prediction using difference multi-hot encoding
 
     def __init__(self, C: float = 1.0, max_iter: int = 1000, random_state: int = 42):
@@ -114,7 +114,7 @@ def run_test(
         val_reg_b = json.load(f)
 
     # Fit and evaluate Logistic Regression
-    model = VGCLogisticRegressionBaseline(random_state=seed)
+    model = VGCLogisticRegression(random_state=seed)
     model.fit(train_reg_a)
 
     reg_a_metrics = model.evaluate(test_reg_a)

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from vgc_matchup_predictor.models.baseline_logistic_regression import VGCLogisticRegressionBaseline
+from vgc_matchup_predictor.models.logistic_regression import VGCLogisticRegression
 
 @pytest.fixture
 def sample_battle():
@@ -16,8 +16,8 @@ def sample_battle():
 
 def test_extract_team(sample_battle):
     # Extract teams for p1 & p2
-    p1_team = VGCLogisticRegressionBaseline.extract_team(sample_battle, 'p1')
-    p2_team = VGCLogisticRegressionBaseline.extract_team(sample_battle, 'p2')
+    p1_team = VGCLogisticRegression.extract_team(sample_battle, 'p1')
+    p2_team = VGCLogisticRegression.extract_team(sample_battle, 'p2')
 
     # Verify team sizes (2 leads + 4 back = 6 total mons)
     assert len(p1_team) == 6
@@ -32,7 +32,7 @@ def test_extract_team(sample_battle):
 
 
 def test_prepate_features(sample_battle):
-    model = VGCLogisticRegressionBaseline()
+    model = VGCLogisticRegression()
 
     X, y = model.prepare_features([sample_battle], is_train=True)
 
@@ -42,7 +42,7 @@ def test_prepate_features(sample_battle):
 
 
 def test_fit_and_predict(sample_battle):
-    model = VGCLogisticRegressionBaseline()
+    model = VGCLogisticRegression()
 
     # Fake dataset with both winner outcomes
     battle_p2_wins = sample_battle.copy()
@@ -59,7 +59,7 @@ def test_fit_and_predict(sample_battle):
 
 
 def test_evaluate(sample_battle):
-    model = VGCLogisticRegressionBaseline()
+    model = VGCLogisticRegression()
     # Logistic regression requires both winner classes in its training data.
     battle_p2_wins = sample_battle.copy()
     battle_p2_wins['winner'] = 'p2'
@@ -76,7 +76,7 @@ def test_evaluate(sample_battle):
 
 
 def test_predict_unfitted_raises_error(sample_battle):
-    model = VGCLogisticRegressionBaseline()
+    model = VGCLogisticRegression()
 
     # Ensure predict is called before RuntimeError
     with pytest.raises(RuntimeError):
