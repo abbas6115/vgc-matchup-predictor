@@ -2,6 +2,7 @@ from typing import Dict, List, Tuple
 import json
 import random
 import numpy as np
+import time
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
@@ -78,12 +79,19 @@ class VGCLogisticRegression:
                 'logistic_regression_precision': 0.0,
                 'logistic_regression_recall': 0.0,
                 'logistic_regression_f1': 0.0,
-                'logistic_regression_log_loss': 0.0
+                'logistic_regression_log_loss': 0.0,
+                'evaluation_time_seconds': 0.0
             }
+
+        start = time.perf_counter()                 # start time
 
         X_test, y_test = self.prepare_features(test_data, is_train=False)
         y_pred = self.model.predict(X_test)         # discrete probabilities ('p1' or 'p2')
         y_proba = self.model.predict_proba(X_test)  # continuous probabilities (P(p1), P(p2)); required for log loss function
+
+        stop = time.perf_counter()                  # stop time
+
+        elapsed_time = stop - start
 
         return {
             'test_samples': len(test_data),
@@ -91,7 +99,8 @@ class VGCLogisticRegression:
             'logistic_regression_precision': float(precision_score(y_test, y_pred, zero_division=0)),
             'logistic_regression_recall': float(recall_score(y_test, y_pred, zero_division=0)),
             'logistic_regression_f1': float(f1_score(y_test, y_pred, zero_division=0)),
-            'logistic_regression_log_loss': float(log_loss(y_test, y_proba))
+            'logistic_regression_log_loss': float(log_loss(y_test, y_proba)),
+            'evaluation_time_seconds': round(float(elapsed_time), 6)
         }
 
 def run_test(
