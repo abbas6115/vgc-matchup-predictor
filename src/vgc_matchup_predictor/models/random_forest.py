@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.preprocessing import MultiLabelBinarizer
 from vgc_matchup_predictor.utils.config import load_config
+from vgc_matchup_predictor.visualizers.vizualizers import plot_roc_curve, plot_confusion_matrix
 
 config = load_config('data_config.yaml')
 
@@ -156,6 +157,10 @@ def run_test(
     top_features = list(model.feature_importances().items())[:10]
     for species, imp in top_features:
         print(f"  - {species}: {imp:.4f}")
+
+    X,t = model.prepare_features(test_reg_a)
+    plot_confusion_matrix(X,t,model.model, "Random Forest Classifier")
+    plot_roc_curve(X,t,model.model, "Random Forest Classifier")
 
 if __name__ == '__main__':
     run_test()

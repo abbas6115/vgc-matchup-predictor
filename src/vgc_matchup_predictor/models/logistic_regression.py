@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 from vgc_matchup_predictor.utils.config import load_config
+from vgc_matchup_predictor.visualizers.vizualizers import plot_confusion_matrix, plot_roc_curve
 
 config = load_config('data_config.yaml')
 
@@ -130,6 +131,11 @@ def run_test(
 
     print('Logistic Regression Evaluation Results:')
     print(json.dumps(results, indent=2))
+
+    X,t = model.prepare_features(test_reg_a)
+    plot_confusion_matrix(X,t,model.model, "Logistic Regression")
+    plot_roc_curve(X,t,model.model, "Logistic Regression")
+    
 
 
 if __name__ == "__main__":
