@@ -94,6 +94,10 @@ class VGCLogisticRegression:
 
         elapsed_time = stop - start
 
+        # plots
+        plot_confusion_matrix(X_test, y_test, self.model, 'Logistic Regression')
+        plot_roc_curve(X_test, y_test, self.model, 'Logistic Regression')
+
         return {
             'test_samples': len(test_data),
             'logistic_regression_accuracy': float(accuracy_score(y_test, y_pred)),
@@ -140,12 +144,6 @@ def run_test(
 
     print('Logistic Regression Evaluation Results:')
     print(json.dumps(results, indent=2))
-
-    X,t = model.prepare_features(test_reg_a)
-    plot_confusion_matrix(X,t,model.model, "Logistic Regression")
-    plot_roc_curve(X,t,model.model, "Logistic Regression")
-    
-
 
 if __name__ == "__main__":
     run_test()
