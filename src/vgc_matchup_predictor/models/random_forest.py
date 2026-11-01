@@ -1,11 +1,13 @@
 from typing import Dict, List, Tuple
+import time
 import json
 import random
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 from sklearn.preprocessing import MultiLabelBinarizer
 from vgc_matchup_predictor.utils.config import load_config
+from vgc_matchup_predictor.visualizers.vizualizers import *
 
 config = load_config('data_config.yaml')
 
@@ -27,6 +29,8 @@ class VGCRandomForest:
             n_jobs=n_jobs,
         )
         self.is_fitted = False
+        self.X_train = None
+        self.y_train = None
 
     @staticmethod
     def extract_team(battle: Dict, player_prefix: str) -> List[str]:
@@ -66,6 +70,8 @@ class VGCRandomForest:
         X_train, y_train = self.prepare_features(train_data, is_train=True)
         self.model.fit(X_train, y_train)
         self.is_fitted = True
+        self.X_train = X_train
+        self.y_train = y_train
 
     def predict(self, battle: Dict) -> str:
         # Predicts winner ('p1' or 'p2') for a single battle
@@ -87,10 +93,29 @@ class VGCRandomForest:
                 'random_forest_precision': 0.0,
                 'random_forest_recall': 0.0,
                 'random_forest_f1': 0.0,
+                'random_forest_log_loss': 0.0,
+                'elapsed_time': 0.0
             }
+
+        start = time.perf_counter()
 
         X_test, y_test = self.prepare_features(test_data, is_train=False)
         y_pred = self.model.predict(X_test)
+        y_proba = self.model.predict_proba(X_test)
+
+        stop = time.perf_counter()
+
+        elapsed_time = stop - start
+
+        # plots
+        plot_confusion_matrix(X_test, y_test, self.model, "Random Forest Classifier")
+        plot_roc_curve(X_test, y_test, self.model, "Random Forest Classifier")
+
+        if self.X_train is not None and self.y_train is not None:
+            plot_learning_curve_log_loss(self.model, self.X_train, self.y_train, X_test, y_test)
+
+        importances = self.feature_importances()
+        plot_feature_importances(importances, 15)
 
         return {
             'test_samples': len(test_data),
@@ -98,6 +123,8 @@ class VGCRandomForest:
             'random_forest_precision': float(precision_score(y_test, y_pred, zero_division=0)),
             'random_forest_recall': float(recall_score(y_test, y_pred, zero_division=0)),
             'random_forest_f1': float(f1_score(y_test, y_pred, zero_division=0)),
+            'random_forest_log_loss': float(log_loss(y_test, y_proba)),
+            'evaluation_time_seconds': round(float(elapsed_time), 6)
         }
 
     def feature_importances(self) -> Dict[str, float]:
@@ -151,11 +178,11 @@ def run_test(
     print('Random Forest Evaluation Results:')
     print(json.dumps(results, indent=2))
 
-    # Print top 10 most influential species
-    print("\nTop 10 Most Important Species Features:")
-    top_features = list(model.feature_importances().items())[:10]
-    for species, imp in top_features:
-        print(f"  - {species}: {imp:.4f}")
+    # # Print top 15 most influential species
+    # print("\nTop 10 Most Important Species Features:")
+    # top_features = list(model.feature_importances().items())[:15]
+    # for species, imp in top_features:
+    #     print(f"  - {species}: {imp:.4f}")
 
 if __name__ == '__main__':
     run_test()
