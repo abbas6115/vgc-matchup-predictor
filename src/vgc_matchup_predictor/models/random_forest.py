@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 from sklearn.preprocessing import MultiLabelBinarizer
 from vgc_matchup_predictor.utils.config import load_config
-from vgc_matchup_predictor.visualizers.vizualizers import plot_roc_curve, plot_confusion_matrix, plot_learning_curve_log_loss
+from vgc_matchup_predictor.visualizers.vizualizers import *
 
 config = load_config('data_config.yaml')
 
@@ -114,6 +114,9 @@ class VGCRandomForest:
         if self.X_train is not None and self.y_train is not None:
             plot_learning_curve_log_loss(self.model, self.X_train, self.y_train, X_test, y_test)
 
+        importances = self.feature_importances()
+        plot_feature_importances(importances, 15)
+
         return {
             'test_samples': len(test_data),
             'random_forest_accuracy': float(accuracy_score(y_test, y_pred)),
@@ -175,11 +178,11 @@ def run_test(
     print('Random Forest Evaluation Results:')
     print(json.dumps(results, indent=2))
 
-    # Print top 10 most influential species
-    print("\nTop 10 Most Important Species Features:")
-    top_features = list(model.feature_importances().items())[:10]
-    for species, imp in top_features:
-        print(f"  - {species}: {imp:.4f}")
+    # # Print top 15 most influential species
+    # print("\nTop 10 Most Important Species Features:")
+    # top_features = list(model.feature_importances().items())[:15]
+    # for species, imp in top_features:
+    #     print(f"  - {species}: {imp:.4f}")
 
 if __name__ == '__main__':
     run_test()

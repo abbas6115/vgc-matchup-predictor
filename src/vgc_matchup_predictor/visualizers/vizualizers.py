@@ -62,3 +62,38 @@ def plot_learning_curve_log_loss(model, X_train, y_train, X_test, y_test, title:
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.show()
     plt.close()
+
+def plot_feature_importances(
+        importance_dict, # dict mapping pokemon species to feature importances 
+        top_n: int, # N; number of top species to plot
+        title: str = 'Top Feature Importances - Random Forest'
+) -> None:
+    # Plots horizontal bar chart of top N Pokemon species feature importances
+
+    # slice top N pokemon and reverse order so highest importance is at the top
+    top_items = list(importance_dict.items())[:top_n]
+    pokemon = [item[0] for item in reversed(top_items)]
+    importances = [item[1] for item in reversed(top_items)]
+
+    plt.figure(figsize=(10, 6))
+    bars = plt.barh(pokemon, importances, color="skyblue", edgecolor="navy")
+
+    # Add numeric label to the end of each bar
+    for bar in bars:
+        width = bar.get_width()
+        plt.text(
+            width + 0.001,
+            bar.get_y() + bar.get_height() / 2,
+            f"{width:.4f}",
+            ha="left",
+            va="center",
+            fontsize=9,
+        )
+
+    plt.xlabel("Gini Feature Importance Score", fontsize=10)
+    plt.ylabel("Species", fontsize=10)
+    plt.title(f"{title} - Top {top_n}", fontsize=12, fontweight="bold")
+    plt.grid(True, linestyle="--", alpha=0.5, axis="x")
+    plt.tight_layout()
+
+    plt.show()
