@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 from vgc_matchup_predictor.utils.config import load_config
-from vgc_matchup_predictor.visualizers.vizualizers import plot_confusion_matrix, plot_roc_curve
+from vgc_matchup_predictor.visualizers.vizualizers import plot_confusion_matrix, plot_roc_curve, plot_learning_curve_log_loss
 
 config = load_config('data_config.yaml')
 
@@ -18,6 +18,8 @@ class VGCLogisticRegression:
         self.mlb = MultiLabelBinarizer()
         self.model = LogisticRegression(C=C, max_iter=max_iter, random_state=random_state)
         self.is_fitted = False
+        self.X_train = None # store vectorized training data to help with plotting later
+        self.y_train = None
 
     @staticmethod
     def extract_team(battle: Dict, player_prefix: str) -> List[str]:
@@ -59,6 +61,8 @@ class VGCLogisticRegression:
         X_train, y_train = self.prepare_features(train_data, is_train=True)
         self.model.fit(X_train, y_train)
         self.is_fitted = True
+        self.X_train = X_train
+        self.y_train = y_train
 
     def predict(self, battle: Dict) -> str:
         # Predicts winner ('p1' or 'p2') for a single battle
@@ -97,6 +101,9 @@ class VGCLogisticRegression:
         # plots
         plot_confusion_matrix(X_test, y_test, self.model, 'Logistic Regression')
         plot_roc_curve(X_test, y_test, self.model, 'Logistic Regression')
+
+        if self.X_train is not None and self.y_train is not None:
+            plot_learning_curve_log_loss(self.model, self.X_train, self.y_train, X_test, y_test)
 
         return {
             'test_samples': len(test_data),
