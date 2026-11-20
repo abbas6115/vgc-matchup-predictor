@@ -3,13 +3,20 @@ from pathlib import Path
 from vgc_matchup_predictor.data.parse_log import parse_log, get_winner,get_back_pokemon
 from vgc_matchup_predictor.utils.config import load_config
 
+lookup_object = None
+
 def start_process_data()-> None:
     """
     Function just to declare file path and target paths and call process data
     """
+    global lookup_object
+
     config = load_config('data_config.yaml')
     project_root = Path(__file__).resolve().parents[3]
     RAW_FILE_PATH = project_root / config['dataset']['raw_path']
+    lookup_file= project_root / config["dataset"]["lookup_path"] / "pokemon_stats.json"
+    lookup_object = read_json(lookup_file)
+    
 
     raw_files = [
             RAW_FILE_PATH / config['dataset']['m_a'],
@@ -58,6 +65,7 @@ def process_data(files:list[str], target:str) -> None:
                 for position in parsed_battle_log:
                     lead_pokemon.append(parsed_battle_log[position]["name"])
                     battle_info[position] = parsed_battle_log[position]["name"]
+                    battle_info[position+" speed"] = lookup(parsed_battle_log[position]["name"],"speed")
                     battle_info[position+" item"] = parsed_battle_log[position]["item"]
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
@@ -104,6 +112,31 @@ def create_target_file(file, path):
     takes the file and the target path and create a new file in path to write to
     """
     return path / file.name
+
+def lookup(pokemon: str, attribute: str) -> str:
+    """
+    Looks up the pokemon within the pokemon_stats.json and gets the attribute specified.
+    """
+    specialPokemon = ["Vivillon", "Alcremie", "Florges", "Furfrou"]
+
+    for p in specialPokemon:
+        if p in pokemon:
+            pokemon = p
+            break
+
+    pokemon_object = lookup_object.get(pokemon.lower())
+    if pokemon_object is None:
+        print(f"Could not find Pokémon: {pokemon}")
+        return ""
+
+    if attribute not in pokemon_object:
+        print(f"Could not find attribute '{attribute}' for {pokemon}")
+        return ""
+
+    return pokemon_object[attribute]
+    
+
+
 
 def write_to_json(data:dict,target: str) -> bool: 
     """
