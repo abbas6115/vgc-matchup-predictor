@@ -3,7 +3,7 @@ from pathlib import Path
 from vgc_matchup_predictor.data.parse_log import parse_log, get_winner,get_back_pokemon
 from vgc_matchup_predictor.utils.config import load_config
 
-lookup_object = None
+lookup_object = {}
 
 def start_process_data()-> None:
     """
@@ -66,6 +66,8 @@ def process_data(files:list[str], target:str) -> None:
                     lead_pokemon.append(parsed_battle_log[position]["name"])
                     battle_info[position] = parsed_battle_log[position]["name"]
                     battle_info[position+" speed"] = lookup(parsed_battle_log[position]["name"],"speed")
+                    battle_info[position+" type1"] = lookup(parsed_battle_log[position]["name"],"type_1")
+                    battle_info[position+" type2"] = lookup(parsed_battle_log[position]["name"],"type_2")
                     battle_info[position+" item"] = parsed_battle_log[position]["item"]
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
@@ -117,7 +119,7 @@ def lookup(pokemon: str, attribute: str) -> str:
     """
     Looks up the pokemon within the pokemon_stats.json and gets the attribute specified.
     """
-    specialPokemon = ["Vivillon", "Alcremie", "Florges", "Furfrou"]
+    specialPokemon = ["Vivillon", "Alcremie", "Florges", "Furfrou","Sinistcha", "Polteageist"]
 
     for p in specialPokemon:
         if p in pokemon:
