@@ -75,8 +75,6 @@ def process_data(files:list[str], target:str) -> None:
                 for position in parsed_battle_log:
                     lead_pokemon.append(parsed_battle_log[position]["name"])
                     battle_info[position] = parsed_battle_log[position]["name"]
-                    battle_info[position+" type1"] = lookup(parsed_battle_log[position]["name"],"type_1")
-                    battle_info[position+" type2"] = lookup(parsed_battle_log[position]["name"],"type_2")
                     battle_info[position+" item"] = parsed_battle_log[position]["item"]
 
                     # use mega evolution if holding a mega stone
@@ -85,10 +83,17 @@ def process_data(files:list[str], target:str) -> None:
                     if (is_mega_stone and "-Mega" not in battle_info[position] and battle_info[position][4] in battle_info[position+" item"]):
                         mega_suffix = "-mega"
                         if (battle_info[position+" item"][-1] in ['Y','X']):
-                            mega_suffix+="-"+battle_info[position+" item"][-1]
+                            mega_suffix+="-"+battle_info[position+" item"][-1]                    
+
+                    battle_info[position] = battle_info[position] + mega_suffix
+
+                    battle_info[position+" type1"] = lookup(parsed_battle_log[position]["name"],"type_1")
+                    battle_info[position+" type2"] = lookup(parsed_battle_log[position]["name"],"type_2")
+
+    
                         
 
-                    battle_info[position+" speed"] = lookup((parsed_battle_log[position]["name"]+mega_suffix),"speed")
+                    battle_info[position+" speed"] = lookup((parsed_battle_log[position]["name"]),"speed")
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
