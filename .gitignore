@@ -20,6 +20,9 @@ data/processed/.gitkeep
 !data/sample/*
 !data/sample/
 
+# dont ignore lookup 
+!data/lookup/
+
 *.json
 *.csv
 *.zip
