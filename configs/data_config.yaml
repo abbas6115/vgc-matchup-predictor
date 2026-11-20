@@ -3,6 +3,7 @@ dataset:
   m_a: "logs_gen9championsvgc2026regma.json" # Regulation M-A battle data
   m_b: "logs_gen9championsvgc2026regmb.json" # Regulation M-B battle data
   stats: "pokemon_stats.json"
+  type_chart: "type_chart.json"
   raw_path: "data/raw/"
   processed_path: "data/processed/"
   lookup_path: "data/lookup/"
