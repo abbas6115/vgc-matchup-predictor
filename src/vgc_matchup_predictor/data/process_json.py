@@ -75,10 +75,20 @@ def process_data(files:list[str], target:str) -> None:
                 for position in parsed_battle_log:
                     lead_pokemon.append(parsed_battle_log[position]["name"])
                     battle_info[position] = parsed_battle_log[position]["name"]
-                    battle_info[position+" speed"] = lookup(parsed_battle_log[position]["name"],"speed")
                     battle_info[position+" type1"] = lookup(parsed_battle_log[position]["name"],"type_1")
                     battle_info[position+" type2"] = lookup(parsed_battle_log[position]["name"],"type_2")
                     battle_info[position+" item"] = parsed_battle_log[position]["item"]
+
+                    # use mega evolution if holding a mega stone
+                    is_mega_stone = ("ite" in battle_info[position+" item"]) and (battle_info[position+" item"] != "WhiteHerb")
+                    mega_suffix= ""
+                    if (is_mega_stone and "-Mega" not in battle_info[position] and battle_info[position][4] in battle_info[position+" item"]):
+                        mega_suffix = "-mega"
+                        if (battle_info[position+" item"][-1] in ['Y','X']):
+                            mega_suffix+="-"+battle_info[position+" item"][-1]
+                        
+
+                    battle_info[position+" speed"] = lookup((parsed_battle_log[position]["name"]+mega_suffix),"speed")
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
@@ -88,6 +98,22 @@ def process_data(files:list[str], target:str) -> None:
                 battle_info["p1a_vs_p2b"] = calc_type_matchup(battle_info["p1a"],battle_info["p2b"])
                 battle_info["p1b_vs_p2a"] = calc_type_matchup(battle_info["p1b"],battle_info["p2a"])
                 battle_info["p1b_vs_p2b"] = calc_type_matchup(battle_info["p1b"],battle_info["p2b"])
+                
+                battle_info["p2a_vs_p1a"] = calc_type_matchup(battle_info["p2a"],battle_info["p1a"])
+                battle_info["p2a_vs_p1b"] = calc_type_matchup(battle_info["p2a"],battle_info["p1b"])
+                battle_info["p2b_vs_p1a"] = calc_type_matchup(battle_info["p2b"],battle_info["p1a"])
+                battle_info["p2b_vs_p1b"] = calc_type_matchup(battle_info["p2b"],battle_info["p1b"])
+
+                # add attack / defenseratios
+                battle_info["p1a_vs_p2a_ratio"] = calc_attack_ratio(battle_info["p1a"],battle_info["p2a"])
+                battle_info["p1a_vs_p2b_ratio"] = calc_attack_ratio(battle_info["p1a"],battle_info["p2b"])
+                battle_info["p1b_vs_p2a_ratio"] = calc_attack_ratio(battle_info["p1b"],battle_info["p2a"])
+                battle_info["p1b_vs_p2b_ratio"] = calc_attack_ratio(battle_info["p1b"],battle_info["p2b"])
+                
+                battle_info["p2a_vs_p1a_ratio"] = calc_attack_ratio(battle_info["p2a"],battle_info["p1a"])
+                battle_info["p2a_vs_p1b_ratio"] = calc_attack_ratio(battle_info["p2a"],battle_info["p1b"])
+                battle_info["p2b_vs_p1a_ratio"] = calc_attack_ratio(battle_info["p2b"],battle_info["p1a"])
+                battle_info["p2b_vs_p1b_ratio"] = calc_attack_ratio(battle_info["p2b"],battle_info["p1b"])
 
                 # add back pokemon
                 back_pokemon = get_back_pokemon(battle_log,lead_pokemon)
@@ -142,6 +168,10 @@ def lookup(pokemon: str, attribute: str) -> str:
             pokemon = p
             break
 
+    if not lookup_object:
+        print("\nCould not find look up object to search for pokemon")
+        return
+
     pokemon_object = lookup_object.get(pokemon.lower())
     if pokemon_object is None:
         print(f"Could not find Pokémon: {pokemon}")
@@ -163,19 +193,11 @@ lookup_object = read_json(lookup_file)
 type_chart_file = project_root / config["dataset"]["lookup_path"] / config["dataset"]["type_chart"]
 type_chart_object = read_json(type_chart_file)
     
-def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=True):
+def calc_type_matchup(attacking_mon:str, defending_mon:str):
     """
     Calculates the type advatange of both attaking types and picks the higher one as the score.
     it takes the attacking type against both defending types then multiplies its matchup to get the resultant
     """
-    attacking_mon = ""
-    if(attacking):
-        attacking_mon = pokemon1
-        defending_mon = pokemon2
-    else:
-        attacking_mon = pokemon2
-        defending_mon = pokemon1
-
 
     atk_type1 = lookup(attacking_mon,"type_1")
     atk_type2 = lookup(attacking_mon,"type_2")
@@ -209,8 +231,38 @@ def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=True):
         score = -4.0
     else: score = log(final_matchup,2)
     
-    score = int(score)
-    return score if attacking else -1 * score
+    return int(score)
+
+def calc_attack_ratio(attacking_mon:str, defending_mon:str):
+    """
+    Calculates the ratio between attack and defense based on attacking pokemons higher stat
+    """
+    attack = lookup(attacking_mon,"attack")
+    spAtk = lookup(attacking_mon,"special_attack")
+    
+    defense = lookup(defending_mon,"defense")
+    spdef = lookup(defending_mon,"special_defense")
+
+    if not attack or not spAtk or not defense or not spdef:
+        print("could not get attacking stats")
+        return 1.0
+
+    ratio = 1.0
+
+    # Determine higher attacking stat
+    if(attack>spAtk):
+        A = True
+    elif (spAtk>attack):
+        A = False
+    else: 
+        A = False
+
+    # calc ratio based on if attack or special attack is higher
+    if A:
+        ratio = attack / defense
+    else: ratio = spAtk / spdef
+
+    return round(ratio,4)
 
 
 def write_to_json(data:dict,target: str) -> bool: 

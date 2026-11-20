@@ -13199,7 +13199,7 @@
         "special_defense":86,
         "speed":126
     },
-    "floette-mega":{
+    "floette-eternal-mega":{
         "id":10296,
         "type_1":"fairy",
         "type_2":null,
@@ -13379,7 +13379,7 @@
         "special_defense":105,
         "speed":55
     },
-    "meowstic-m-mega":{
+    "meowstic-mega":{
         "id":10314,
         "type_1":"psychic",
         "type_2":null,
