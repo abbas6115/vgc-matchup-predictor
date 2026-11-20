@@ -1,21 +1,31 @@
 import json
+from math import log
 from pathlib import Path
 from vgc_matchup_predictor.data.parse_log import parse_log, get_winner,get_back_pokemon
 from vgc_matchup_predictor.utils.config import load_config
 
+# object for lookup pokemon stat or type
 lookup_object = {}
+
+# object that reads the type matchup .json to calc type advantage
+type_chart_object = {}
 
 def start_process_data()-> None:
     """
     Function just to declare file path and target paths and call process data
     """
     global lookup_object
+    global type_chart_object
 
     config = load_config('data_config.yaml')
     project_root = Path(__file__).resolve().parents[3]
     RAW_FILE_PATH = project_root / config['dataset']['raw_path']
-    lookup_file= project_root / config["dataset"]["lookup_path"] / "pokemon_stats.json"
+
+    lookup_file= project_root / config["dataset"]["lookup_path"] / config["dataset"]["stats"]
     lookup_object = read_json(lookup_file)
+    
+    type_chart_file = project_root / config["dataset"]["lookup_path"] / config["dataset"]["stats"]
+    type_chart_object = read_json(type_chart_file)
     
 
     raw_files = [
@@ -136,8 +146,66 @@ def lookup(pokemon: str, attribute: str) -> str:
         return ""
 
     return pokemon_object[attribute]
-    
 
+config = load_config('data_config.yaml')
+project_root = Path(__file__).resolve().parents[3]
+RAW_FILE_PATH = project_root / config['dataset']['raw_path']
+
+lookup_file= project_root / config["dataset"]["lookup_path"] / config["dataset"]["stats"]
+lookup_object = read_json(lookup_file)
+
+type_chart_file = project_root / config["dataset"]["lookup_path"] / config["dataset"]["type_chart"]
+type_chart_object = read_json(type_chart_file)
+    
+def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=False):
+    """
+    Calculates the type advatange of both attaking types and picks the higher one as the score.
+    it takes the attacking type against both defending types then multiplies its matchup to get the resultant
+    """
+    attacking_mon = ""
+    if(attacking):
+        attacking_mon = pokemon1
+        defending_mon = pokemon2
+    else:
+        attacking_mon = pokemon2
+        defending_mon = pokemon1
+
+
+    atk_type1 = lookup(attacking_mon,"type_1")
+    atk_type2 = lookup(attacking_mon,"type_2")
+    def_type1 = lookup(defending_mon,"type_1")
+    def_type2 = lookup(defending_mon,"type_2")
+
+    if not atk_type1 or not def_type1:
+        print("could not find types")
+        return 1.0
+
+    atk_type1_val = 0.0
+    atk_type2_val = 0.0
+    score = 0
+
+    print(f'{atk_type1} {atk_type2} {def_type1} {def_type2}')
+    atk_type1_val = type_chart_object[atk_type1][def_type1]
+
+    if def_type2:
+        atk_type1_val *= type_chart_object[atk_type1][def_type2]
+
+    # return if attacker only has one type
+    if atk_type2:
+        atk_type2_val = type_chart_object[atk_type2][def_type1]
+        
+        if def_type2:
+            atk_type2_val *= type_chart_object[atk_type2][def_type2]
+
+    final_matchup = max(atk_type1_val, atk_type2_val)
+
+    # prevent log(0)
+    if (final_matchup == 0):
+        score = -8.0
+    else: score = log(final_matchup,2)
+    
+    score = int(score)
+    return score if attacking else -1 * score
 
 
 def write_to_json(data:dict,target: str) -> bool: 
@@ -162,5 +230,7 @@ def write_to_json(data:dict,target: str) -> bool:
     except IOError as e:
         print(f"I/O error: {e}")
 
-if __name__ == '__main__':
-    start_process_data()
+
+
+# if __name__ == '__main__':
+#     start_process_data()
