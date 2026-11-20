@@ -24,7 +24,7 @@ def start_process_data()-> None:
     lookup_file= project_root / config["dataset"]["lookup_path"] / config["dataset"]["stats"]
     lookup_object = read_json(lookup_file)
     
-    type_chart_file = project_root / config["dataset"]["lookup_path"] / config["dataset"]["stats"]
+    type_chart_file = project_root / config["dataset"]["lookup_path"] / config["dataset"]["type_chart"]
     type_chart_object = read_json(type_chart_file)
     
 
@@ -82,6 +82,12 @@ def process_data(files:list[str], target:str) -> None:
                     battle_info[position+" ability"] = parsed_battle_log[position]["ability"]
                     battle_info[position+" moves"] = parsed_battle_log[position]["moves"]
                     battle_info[position+" nature"] = parsed_battle_log[position]["nature"]
+
+                # add individual type matchups
+                battle_info["p1a_vs_p2a"] = calc_type_matchup(battle_info["p1a"],battle_info["p2a"])
+                battle_info["p1a_vs_p2b"] = calc_type_matchup(battle_info["p1a"],battle_info["p2b"])
+                battle_info["p1b_vs_p2a"] = calc_type_matchup(battle_info["p1b"],battle_info["p2a"])
+                battle_info["p1b_vs_p2b"] = calc_type_matchup(battle_info["p1b"],battle_info["p2b"])
 
                 # add back pokemon
                 back_pokemon = get_back_pokemon(battle_log,lead_pokemon)
@@ -157,7 +163,7 @@ lookup_object = read_json(lookup_file)
 type_chart_file = project_root / config["dataset"]["lookup_path"] / config["dataset"]["type_chart"]
 type_chart_object = read_json(type_chart_file)
     
-def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=False):
+def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=True):
     """
     Calculates the type advatange of both attaking types and picks the higher one as the score.
     it takes the attacking type against both defending types then multiplies its matchup to get the resultant
@@ -184,7 +190,6 @@ def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=False):
     atk_type2_val = 0.0
     score = 0
 
-    print(f'{atk_type1} {atk_type2} {def_type1} {def_type2}')
     atk_type1_val = type_chart_object[atk_type1][def_type1]
 
     if def_type2:
@@ -201,7 +206,7 @@ def calc_type_matchup(pokemon1:str, pokemon2:str, attacking:bool=False):
 
     # prevent log(0)
     if (final_matchup == 0):
-        score = -8.0
+        score = -4.0
     else: score = log(final_matchup,2)
     
     score = int(score)
@@ -232,5 +237,5 @@ def write_to_json(data:dict,target: str) -> bool:
 
 
 
-# if __name__ == '__main__':
-#     start_process_data()
+if __name__ == '__main__':
+    start_process_data()
