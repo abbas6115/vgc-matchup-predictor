@@ -8,8 +8,19 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 from sklearn.preprocessing import MultiLabelBinarizer
 from vgc_matchup_predictor.utils.config import load_config
 from vgc_matchup_predictor.visualizers.vizualizers import *
+from vgc_matchup_predictor.data.process_json import lookup, calc_type_matchup, calc_attack_ratio
 
 config = load_config('data_config.yaml')
+LEAD_POSITIONS = ('p1a', 'p1b', 'p2a', 'p2b')
+P1_LEADS = ('p1a', 'p1b')
+P2_LEADS = ('p2a', 'p2b')
+MATCHUP_FEATURE_NAMES = [
+    *(f'{pos}_speed' for pos in LEAD_POSITIONS),
+    *(f'{atk}_vs_{dfn}_type' for atk in P1_LEADS for dfn in P2_LEADS),
+    *(f'{atk}_vs_{dfn}_type' for atk in P2_LEADS for dfn in P1_LEADS),
+    *(f'{atk}_vs_{dfn}_atk_ratio' for atk in P1_LEADS for dfn in P2_LEADS),
+    *(f'{atk}_vs_{dfn}_atk_ratio' for atk in P2_LEADS for dfn in P1_LEADS),
+]
 
 class VGCRandomForest:
     # Random Forest for battle prediction using differential multi-hot encoding
@@ -47,8 +58,45 @@ class VGCRandomForest:
         team.extend(back)
         return team
 
+    @staticmethod
+    def extract_matchup_features(battle: Dict) -> List[float]:
+        features: List[float] = []
+
+        # base speed for each lead pokemon; 4 features
+        for pos in LEAD_POSITIONS:
+            mon = battle.get(pos)
+            if mon:
+                speed = lookup(mon, 'speed')
+                features.append(float(speed) if speed not in ('', None) else 0.0)
+            else:
+                features.append(0.0)
+
+        # directional lead type matchups; 8 features
+        for atk_pos in P1_LEADS:
+            for def_pos in P2_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(def_pos)
+                features.append(float(calc_type_matchup(atk, dfn)) if atk and dfn else 0.0)
+
+        for atk_pos in P2_LEADS:
+            for def_pos in P1_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(def_pos)
+                features.append(float(calc_type_matchup(atk, dfn)) if atk and dfn else 0.0)
+
+        # directional lead attack/defense ratios; 8 features
+        for atk_pos in P1_LEADS:
+            for def_pos in P2_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(def_pos)
+                features.append(float(calc_attack_ratio(atk, dfn)) if atk and dfn else 0.0)
+
+        for atk_pos in P2_LEADS:
+            for def_pos in P1_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(def_pos)
+                features.append(float(calc_attack_ratio(atk, dfn)) if atk and dfn else 0.0)
+
+        return features
+
     def prepare_features(self, battles: List[Dict], is_train: bool = False) -> Tuple[np.ndarray, np.ndarray]:
-        # Convert the processed battle logs into differential multi-hot feature matrices
+        # Convert the processed battle logs into differential multi-hot + matchup feature matrices
         p1_teams = [self.extract_team(b, 'p1') for b in battles]
         p2_teams = [self.extract_team(b, 'p2') for b in battles]
 
@@ -60,7 +108,15 @@ class VGCRandomForest:
         X_p2 = self.mlb.transform(p2_teams)
 
         # Difference vector: P1 presence (+1) vs P2 presence (-1)
-        X = X_p1 - X_p2
+        X_roster = X_p1 - X_p2
+
+        # Compute lead speed, type matchup, attack/defense ratio features
+        if len(battles) > 0:
+            X_matchup = np.array([self.extract_matchup_features(b) for b in battles], dtype=float)
+            X = np.hstack([X_roster, X_matchup])
+        else:
+            X = np.empty((0, X_roster.shape[1] + len(MATCHUP_FEATURE_NAMES)), dtype=float)
+
         y = np.array([1 if b.get('winner') == 'p1' else 0 for b in battles])
 
         return X, y
