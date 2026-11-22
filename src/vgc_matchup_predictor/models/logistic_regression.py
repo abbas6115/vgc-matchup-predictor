@@ -4,18 +4,24 @@ import random
 import numpy as np
 import time
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.preprocessing import MultiLabelBinarizer, StandardScaler
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 from vgc_matchup_predictor.utils.config import load_config
 from vgc_matchup_predictor.visualizers.vizualizers import plot_confusion_matrix, plot_roc_curve, plot_learning_curve_log_loss
+from vgc_matchup_predictor.data.process_json import lookup, calc_type_matchup, calc_attack_ratio
 
 config = load_config('data_config.yaml')
+LEAD_POSITIONS = ('p1a', 'p1b', 'p2a', 'p2b')
+P1_LEADS = ('p1a', 'p1b')
+P2_LEADS = ('p2a', 'p2b')
 
 class VGCLogisticRegression:
     # Logistic Regression baseline for battle prediction using difference multi-hot encoding
+    # augmented with lead speed, type matchup, atk/def ratio features
 
     def __init__(self, C: float = 1.0, max_iter: int = 1000, random_state: int = 42):
         self.mlb = MultiLabelBinarizer()
+        self.scaler = StandardScaler()
         self.model = LogisticRegression(C=C, max_iter=max_iter, random_state=random_state)
         self.is_fitted = False
         self.X_train = None # store vectorized training data to help with plotting later
@@ -36,6 +42,50 @@ class VGCLogisticRegression:
         team.extend(back)
         return team
 
+    @staticmethod
+    def extract_matchup_features(battle: Dict) -> List[float]:
+        # extracts numeric lead-matchup features using lookup, calc_type_matchup, calc_attack_ratio
+        features: List[float] = []
+
+        # base speed for each lead pokemon; 4 features
+        for pos in LEAD_POSITIONS:
+            mon = battle.get(pos)
+            if mon:
+                speed = lookup(mon, 'speed')
+                features.append(float(speed) if speed not in ('', None) else 0.0)
+            else:
+                features.append(0.0)
+
+        # directional lead type matchups; P1->P2 & P2->P1; 8 features
+
+        # P1->P2
+        for atk_pos in P1_LEADS:
+            for dfn_pos in P2_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(dfn_pos)
+                features.append(float(calc_type_matchup(atk, dfn)) if atk and dfn else 0.0)
+
+        # P2->P1
+        for atk_pos in P2_LEADS:
+            for dfn_pos in P1_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(dfn_pos)
+                features.append(float(calc_type_matchup(atk, dfn)) if atk and dfn else 0.0)
+
+        # directional lead attack/defense ratios: P1->P2 & P2->P1; 8 features
+        
+        # P1->P2
+        for atk_pos in P1_LEADS:
+            for dfn_pos in P2_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(dfn_pos)
+                features.append(float(calc_attack_ratio(atk, dfn)) if atk and dfn else 0.0)
+
+        # P2->P1
+        for atk_pos in P2_LEADS:
+            for dfn_pos in P1_LEADS:
+                atk, dfn = battle.get(atk_pos), battle.get(dfn_pos)
+                features.append(float(calc_attack_ratio(atk, dfn)) if atk and dfn else 0.0)
+
+        return features
+
     def prepare_features(self, battles: List[Dict], is_train: bool = False) -> Tuple[np.ndarray, np.ndarray]:
         # Converts raw battle logs into differential multi-hot feature matrices
         p1_teams = [self.extract_team(b, 'p1') for b in battles]
@@ -51,7 +101,19 @@ class VGCLogisticRegression:
         X_p2 = self.mlb.transform(p2_teams)
 
         # Compute difference vector: P1 presence (+1) vs P2 presence (-1)
-        X = X_p1 - X_p2
+        X_roster = X_p1 - X_p2
+
+        # Compute scale and lead speed, type matchup, and attack ratio features
+        if len(battles) > 0:
+            X_matchup = np.array([self.extract_matchup_features(b) for b in battles], dtype=float)
+            if is_train:
+                X_matchup = self.scaler.fit_transform(X_matchup)
+            else:
+                X_matchup = self.scaler.transform(X_matchup)
+            X = np.hstack([X_roster, X_matchup])
+        else:
+            X = np.empty((0, X_roster.shape[1] + 20), dtype=float)
+
         y = np.array([1 if b.get('winner') == 'p1' else 0 for b in battles])
 
         return X, y
