@@ -318,7 +318,7 @@ def run_test(
     reg_b_path: str = './data/processed/' + config['dataset']['m_b'],
     train_ratio: float = 0.8,
     seed: int = 42,
-    tune: bool = True
+    tune: bool = False
 ):
     random.seed(seed)
 
