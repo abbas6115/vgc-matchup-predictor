@@ -24,7 +24,7 @@ class VGCLogisticRegression:
 
     def __init__(
             self,
-            C: float = 1.0,
+            C: float = 0.01,
             l1_ratio: float = 0.0,
             solver: str = 'lbfgs',
             class_weight: Optional[Any] = None,
