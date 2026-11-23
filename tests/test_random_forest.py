@@ -55,16 +55,20 @@ def test_fit_and_predict(sample_battle):
 def test_evaluate(sample_battle):
     model = VGCRandomForest(n_estimators=10)
 
-    model.fit([sample_battle])
+    battle_p2_wins = sample_battle.copy()
+    battle_p2_wins['winner'] = 'p2'
+    dataset = [sample_battle, battle_p2_wins] * 10
 
-    metrics = model.evaluate([sample_battle])
+    model.fit(dataset)
+
+    metrics = model.evaluate(dataset)
 
     assert 'random_forest_accuracy' in metrics
     assert 'random_forest_precision' in metrics
     assert 'random_forest_recall' in metrics
     assert 'random_forest_f1' in metrics
     assert 'test_samples' in metrics
-    assert metrics['test_samples'] == 1
+    assert metrics['test_samples'] == 20
 
 
 def test_feature_importances(sample_battle):

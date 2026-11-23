@@ -4,7 +4,10 @@ from unittest.mock import mock_open, patch
 
 import vgc_matchup_predictor.data.process_json as process_json
 from vgc_matchup_predictor.data.process_json import (
+    calc_attack_ratio,
+    calc_type_matchup,
     create_target_file,
+    lookup,
     process_data,
     read_json,
     start_process_data,
@@ -91,6 +94,27 @@ def test_process_data_success(
             "ability": "Static",
             "moves": ["Thunderbolt", "Quick Attack"],
             "nature": "Timid",
+        },
+        "p1b": {
+            "name": "Pikachu",
+            "item": "Light Ball",
+            "ability": "Static",
+            "moves": ["Thunderbolt", "Quick Attack"],
+            "nature": "Timid",
+        },
+        "p2a": {
+            "name": "Pikachu",
+            "item": "Light Ball",
+            "ability": "Static",
+            "moves": ["Thunderbolt", "Quick Attack"],
+            "nature": "Timid",
+        },
+        "p2b": {
+            "name": "Pikachu",
+            "item": "Light Ball",
+            "ability": "Static",
+            "moves": ["Thunderbolt", "Quick Attack"],
+            "nature": "Timid",
         }
     }
     mock_back_pokemon.return_value = [
@@ -98,31 +122,30 @@ def test_process_data_success(
         ["Tyranitar", "Salamence"],
     ]
     mock_winner.return_value = "p1"
+
+    mock_stats = {
+        "pikachu": {"type_1": "Electric", "type_2": "", "speed": 90, "attack": 55, "special_attack": 50, "defense": 40, "special_defense": 50},
+    }
+
+    mock_chart = {
+        "Electric": {"Electric": 0.5}
+    }
     input_file = tmp_path / "raw" / "file1.json"
     target_dir = tmp_path / "processed"
 
-    process_data([input_file], target_dir)
+    with(
+        patch.object(process_json, "lookup_object", mock_stats),
+        patch.object(process_json, "type_chart_object", mock_chart)
+    ):
+        process_data([input_file], target_dir)
 
-    mock_read.assert_called_once_with(input_file)
-    mock_parse.assert_called_once_with("raw_log_content")
-    mock_back_pokemon.assert_called_once_with("raw_log_content", ["Pikachu"])
-    mock_winner.assert_called_once_with("raw_log_content")
-    mock_write.assert_called_once_with(
-        [
-            {
-                "battle_id": "battle_101",
-                "p1a": "Pikachu",
-                "p1a item": "Light Ball",
-                "p1a ability": "Static",
-                "p1a moves": ["Thunderbolt", "Quick Attack"],
-                "p1a nature": "Timid",
-                "p1_back": ["Venusaur", "Blastoise"],
-                "p2_back": ["Tyranitar", "Salamence"],
-                "winner": "p1",
-            }
-        ],
-        target_dir / "file1.json",
-    )
+    mock_write.assert_called_once()
+    written_records = mock_write.call_args[0][0]
+    assert written_records[0]["battle_id"] == "battle_101"
+    assert written_records[0]["p1a_vs_p2a"] == -1
+    assert written_records[0]["p1a_vs_p2a_ratio"] == 1.375
+    assert written_records[0]["winner"] == "p1"
+
 
 
 @patch("vgc_matchup_predictor.data.process_json.write_to_json")
@@ -135,13 +158,17 @@ def test_process_data_skips_missing_file(mock_read, mock_write, tmp_path):
     mock_write.assert_not_called()
 
 
+@patch("vgc_matchup_predictor.data.process_json.read_json")
 @patch("vgc_matchup_predictor.data.process_json.process_data")
 @patch("vgc_matchup_predictor.data.process_json.load_config")
-def test_start_process_data_uses_config(mock_load_config, mock_process_data):
+def test_start_process_data_uses_config(mock_load_config, mock_process_data, mock_read_json):
     # Derive expected absolute paths from the package location used by production code.
     mock_load_config.return_value = {
         "dataset": {
             "raw_path": "data/raw/",
+            "lookup_path": "data/lookup/",
+            "stats": "pokemon_stats.json",
+            "type_chart": "type_chart.json",
             "m_a": "matchup_a.json",
             "m_b": "matchup_b.json",
             "processed_path": "data/processed/",
@@ -158,3 +185,97 @@ def test_start_process_data_uses_config(mock_load_config, mock_process_data):
         ],
         project_root / "data/processed/",
     )
+
+def test_lookup_success():
+    mock_stats = {
+        "pikachu": {"type_1": "Electric", "type_2": "", "speed": 90},
+    }
+    with patch.object(process_json, "lookup_object", mock_stats):
+        assert lookup("Pikachu", "type_1") == "Electric"
+        assert lookup("Pikachu", "speed") == 90
+
+
+def test_lookup_special_pokemon_normalizes_form():
+    mock_stats = {
+        "vivillon": {"type_1": "Bug", "type_2": "Flying"},
+        "alcremie": {"type_1": "Fairy", "type_2": ""},
+    }
+    with patch.object(process_json, "lookup_object", mock_stats):
+        assert lookup("Vivillon", "type_1") == "Bug"
+        assert lookup("Alcremie", "type_1") == "Fairy"
+
+
+def test_lookup_missing_object(capsys):
+    with patch.object(process_json, "lookup_object", {}):
+        assert lookup("Pikachu", "speed") is None
+
+    assert "Could not find look up object" in capsys.readouterr().out
+
+
+def test_calc_type_matchup_dual_type_advantage():
+    mock_stats = {
+        "garchomp": {"type_1": "Dragon", "type_2": "Ground"},
+        "heatran": {"type_1": "Fire", "type_2": "Steel"},
+    }
+
+    mock_chart = {
+        "Dragon": {"Fire": 1.0, "Steel": 0.5},
+        "Ground": {"Fire": 2.0, "Steel": 2.0},
+    }
+    with(
+        patch.object(process_json, "lookup_object", mock_stats),
+        patch.object(process_json, "type_chart_object", mock_chart)
+    ):
+        assert calc_type_matchup("Garchomp", "Heatran") == 2.0
+
+
+
+def test_calc_type_matchup_immunity():
+    mock_stats = {
+        "garchomp": {"type_1": "Dragon", "type_2": "Ground"},
+        "togekiss": {"type_1": "Fairy", "type_2": "Flying"},
+    }
+
+    mock_chart = {
+        "Dragon": {"Fairy": 0.0, "Flying": 1.0},
+        "Ground": {"Fairy": 1.0, "Flying": 0.0},
+    }
+    with(
+        patch.object(process_json, "lookup_object", mock_stats),
+        patch.object(process_json, "type_chart_object", mock_chart)
+    ):
+        assert calc_type_matchup("Garchomp", "Togekiss") == -4.0
+
+
+def test_calc_type_matchup_missing_types(capsys):
+    with patch.object(process_json, "lookup_object", {}):
+        assert calc_type_matchup("Unknown1", "Unknown2") == 1.0
+
+    assert "could not find types" in capsys.readouterr().out
+
+
+def test_calc_attack_ratio():
+    mock_stats = {
+        "tyranitar": {"attack": 134, "special_attack": 95},
+        "blissey": {"defense": 10, "special_defense": 135},
+    }
+    with patch.object(process_json, "lookup_object", mock_stats):
+        assert calc_attack_ratio("Tyranitar", "Blissey") == 13.4
+
+
+def test_calc_attack_ratio_using_special_attack():
+    mock_stats = {
+        "fluttermane": {"attack": 55, "special_attack": 135},
+        "incineroar": {"defense": 90, "special_defense": 90},
+        "mew": {"attack": 100, "special_attack": 100},
+    }
+    with patch.object(process_json, "lookup_object", mock_stats):
+        assert calc_attack_ratio("FlutterMane", "Incineroar") == 1.5
+        assert calc_attack_ratio("Mew", "Incineroar") == 1.1111
+
+
+def test_calc_attack_ratio_missing_stats(capsys):
+    with patch.object(process_json, "lookup_object", {}):
+        assert calc_attack_ratio("Unknown1", "Unknown2") == 1.0
+
+    assert "could not get attacking stats" in capsys.readouterr().out
