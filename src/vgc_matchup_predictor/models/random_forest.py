@@ -28,12 +28,12 @@ class VGCRandomForest:
 
     def __init__(
         self,
-        n_estimators: int = 200,    # hyperparams
+        n_estimators: int = 400,    # hyperparams
         max_depth: Optional[int] = 15,
         min_samples_split: int = 2,
         min_samples_leaf: int = 1,
         max_features: Any = 'sqrt',
-        class_weight: Optional[Any] = None,
+        class_weight: Optional[Any] = 'balanced',
         random_state: int = 42,
         n_jobs: int = -1,           # use all available CPU cores
     ):
