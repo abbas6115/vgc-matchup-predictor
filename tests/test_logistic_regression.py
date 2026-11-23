@@ -64,14 +64,15 @@ def test_evaluate(sample_battle):
     battle_p2_wins = sample_battle.copy()
     battle_p2_wins['winner'] = 'p2'
 
-    model.fit([sample_battle, battle_p2_wins])
+    dataset = [sample_battle, battle_p2_wins] * 10
+    model.fit(dataset)
 
-    metrics = model.evaluate([sample_battle])
+    metrics = model.evaluate(dataset)
 
     # Assert metrics
     assert 'logistic_regression_accuracy' in metrics
     assert 'test_samples' in metrics
-    assert metrics['test_samples'] == 1
+    assert metrics['test_samples'] == 20
     assert isinstance(metrics['logistic_regression_accuracy'], float)
 
 
