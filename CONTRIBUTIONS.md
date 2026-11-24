@@ -21,3 +21,5 @@
 - Wrote exploratory data analysis notebook in `notebooks/01_milestone2_exploratory_data_analysis.ipynb`
 - Wrote naive benchmark and baseline logistic regression models
 - Wrote discrepancy analysis for baseline table values
+- Implemented matchup features to Logistic Regression and Random Forest models
+- Wrote and ran `tune_hyperparameters()` functions for both models
